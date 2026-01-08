@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Master Pro</title>
+    <style>
+        /* CSS Unificado */
+        :root { --p-color: #2563eb; --s-color: #10b981; --bg: #f3f4f6; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
+        #app { width: 100%; max-width: 450px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; }
+        .top-bar { background: var(--p-color); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .screen { padding: 20px; display: none; }
+        .active { display: block; }
+        .menu-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; color: white; }
+        .opt-btn { background: white; border: 2px solid #e5e7eb; width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="top-bar">
+            <span>QUIZ MASTER PRO</span>
+            <div class="coin-box">💰 <span id="coin-count">0</span></div>
+        </div>
+
+        <div id="scr-home" class="screen active">
+            <button class="menu-btn" style="background: #10b981;" onclick="irA('scr-quiz')">🎮 Jugar</button>
+            <p id="load-status">Cargando preguntas...</p>
+        </div>
+
+        <div id="scr-quiz" class="screen">
+            <h3 id="q-text">Cargando...</h3>
+            <div id="q-options"></div>
+        </div>
+    </div>
+
+    <script>
+        /* JS Unificado */
+        let bancoPreguntas = [];
+
+        fetch('Ps1_comas_final.csv')
+            .then(res => res.text())
+            .then(data => {
+                const filas = data.split('\n').slice(1);
+                bancoPreguntas = filas.filter(f => f.trim() !== "").map(f => {
+                    const c = f.split(',');
+                    return { p: c[0], cor: c[1], ops: [c[1], c[2], c[3], c[4]], diff: c[5] };
+                });
+                document.getElementById('load-status').innerText =
+                    "✅ " + bancoPreguntas.length + " preguntas listas";
+            })
+            .catch(() => {
+                document.getElementById('load-status').innerText =
+                    "❌ Error al cargar Ps1_comas_final.csv";
+            });
+
+        function irA(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+    </script>
+</body>
+</html>
