@@ -92,25 +92,30 @@
         });
     });
 
-    // LÓGICA DE ANUNCIOS (CONEXIÓN CON APK)
+    // 🟢 LÓGICA DE ANUNCIOS REFORZADA
     function pedirAnuncio(recompensa, esContinuar = false) {
-        // Intenta comunicarse con la interfaz de la APK
-        if (window.JSInterface) {
-            window.JSInterface.mostrarAnuncio(ADMOB_INTERSTITIAL_ID);
-        } else {
-            console.log("Simulando anuncio fuera de la APK...");
-        }
+        console.log("Llamando a anuncio: " + ADMOB_INTERSTITIAL_ID);
 
-        if (esContinuar) {
-            document.getElementById('modal-fail').style.display = 'none';
-            qIdx++; cargarPregunta();
-        } else if (recompensa > 0) {
-            monedas += recompensa;
-            actualizarMarcador();
+        // Intentamos conectar con diferentes interfaces comunes de APK
+        const bridge = window.JSInterface || window.Android || window.AppInventor;
+
+        if (bridge && (bridge.mostrarAnuncio || bridge.showInterstitial)) {
+            if (bridge.mostrarAnuncio) bridge.mostrarAnuncio(ADMOB_INTERSTITIAL_ID);
+            else bridge.showInterstitial(ADMOB_INTERSTITIAL_ID);
+        } else {
+            // Si no hay bridge, estamos en navegador
+            alert("Anuncio no disponible fuera de la App. Recompensa simulada.");
+            if (esContinuar) {
+                document.getElementById('modal-fail').style.display = 'none';
+                qIdx++; cargarPregunta();
+            } else if (recompensa > 0) {
+                monedas += recompensa;
+                actualizarMarcador();
+            }
         }
     }
 
-    // LÓGICA DE PAGOS Y TIENDA
+    // LÓGICA DE PAGOS
     function pintarTienda() {
         const list = document.getElementById('shop-list');
         list.innerHTML = "";
@@ -122,7 +127,6 @@
         pagos.forEach(p => {
             const puedePagar = monedas >= p.c;
             const estiloBtn = puedePagar ? "background:#6366f1;" : "background:#9ca3af; cursor:not-allowed;";
-            
             list.innerHTML += `
                 <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee">
                     <span>PayPal <b>${p.e}€</b></span>
@@ -136,24 +140,18 @@
 
     function intentarRetiro(monto, costo) {
         if (monedas < costo) {
-            alert("No tienes suficientes monedas. ¡Sigue jugando! 💪");
+            alert("Faltan monedas. ¡Sigue jugando!");
             return;
         }
-        
-        // Forzamos un anuncio antes del proceso de pago
         pedirAnuncio(0);
-
-        const email = prompt("¡Mínimo alcanzado! Introduce tu email de PayPal para recibir " + monto + "€:");
+        const email = prompt("Email de PayPal para enviar " + monto + "€:");
         if (email) {
-            const logPago = `PAGO: ${monto}€ | EMAIL: ${email} | MONEDAS: ${monedas}`;
-            if (window.JSInterface) {
-                window.JSInterface.enviarNotificacionPago(logPago);
-            }
-            alert("Solicitud enviada. Revisaremos tu saldo.");
+            alert("Solicitud registrada para: " + email);
+            // Aquí podrías enviar los datos a un servidor o Firebase
         }
     }
 
-    // FUNCIONES DEL JUEGO
+    // FUNCIONES BASE (Navegación y Marcador)
     function barajar(array) { return array.sort(() => Math.random() - 0.5); }
     function actualizarMarcador() { document.getElementById('coin-count').innerText = monedas; }
     function irA(id) {
@@ -161,7 +159,6 @@
         document.getElementById(id).classList.add('active');
         if(id === 'scr-shop') pintarTienda();
     }
-
     function setGrupo(nombre) {
         grupoActivo = nombre;
         preguntasFiltradas = bancoPreguntas.filter(p => p.diff === nombre);
@@ -169,7 +166,6 @@
         pintarNiveles();
         irA('scr-levels');
     }
-
     function pintarNiveles() {
         const container = document.getElementById('levels-container');
         container.innerHTML = "";
@@ -183,16 +179,12 @@
             container.appendChild(b);
         }
     }
-
     function cargarPregunta() {
         document.getElementById('modal-fail').style.display = 'none';
         const qData = preguntasFiltradas[Math.floor(Math.random() * preguntasFiltradas.length)];
         const opsBarajadas = barajar([...qData.ops]);
-        
         document.getElementById('q-progress').innerText = (qIdx + 1) + "/7";
-        document.getElementById('q-diff').innerText = grupoActivo;
         document.getElementById('q-text').innerText = qData.p;
-        
         const box = document.getElementById('q-options'); box.innerHTML = "";
         opsBarajadas.forEach(opt => {
             const btn = document.createElement("button");
