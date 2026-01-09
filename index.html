@@ -3,98 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cashcent Puzzle - Sistema Completo</title>
+    <title>Quiz Master Final</title>
     <style>
-        :root { --primary: #ffd700; --bg: #121212; --panel: #1e1e1e; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; text-align: center; }
-        .header { background: var(--panel); padding: 15px; border-bottom: 2px solid #333; position: sticky; top: 0; z-index: 10; }
-        .stats { font-size: 1.4rem; color: var(--primary); font-weight: bold; }
-        .container { padding: 20px; max-width: 500px; margin: auto; }
-        .btn { background: #333; border: 1px solid #555; padding: 15px; color: white; border-radius: 10px; cursor: pointer; width: 100%; margin: 8px 0; font-size: 1rem; transition: 0.3s; }
-        .btn-gold { border-color: var(--primary); color: var(--primary); }
-        .btn-green { background: #28a745; border: none; }
-        .hidden { display: none; }
-        .card { background: var(--panel); padding: 20px; border-radius: 15px; margin-top: 20px; }
+        :root { --p-color: #2563eb; --s-color: #10b981; --bg: #f3f4f6; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
+        #app { width: 100%; max-width: 450px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; }
+        .top-bar { background: var(--p-color); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .coin-box { background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; }
+        .screen { padding: 20px; display: none; }
+        .active { display: block; }
+        .menu-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; }
+        .btn-play { background: var(--s-color); }
+        .btn-ad { background: #f59e0b; }
+        .btn-pay { background: #6366f1; }
+        .btn-gray { background: #6b7280; }
+        .levels-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; }
+        .lvl-btn { aspect-ratio: 1; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+        .opt-btn { background: white; border: 2px solid #e5e7eb; width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; font-weight: bold; cursor: pointer; color: #333; }
+        #modal-fail { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="stats" id="txt-saldo">🪙 0</div>
-    <div id="txt-progreso">Selecciona dificultad</div>
-</div>
-
-<div class="container">
-    <div id="menu-principal">
-        <h3>Grupos de Dificultad 🧩</h3>
-        <button class="btn btn-gold" onclick="iniciarGrupo(0)">1. Fácil (1-100)</button>
-        <button class="btn btn-gold" onclick="iniciarGrupo(1)">2. Medio (101-200)</button>
-        <button class="btn btn-gold" onclick="iniciarGrupo(2)">3. Difícil (201-300)</button>
-        <button class="btn btn-gold" onclick="iniciarGrupo(3)">4. Muy Difícil (301-400)</button>
-        <button class="btn btn-green" onclick="mostrarTienda()">🛒 Tienda de Retiros</button>
+<div id="app">
+    <div class="top-bar">
+        <span>QUIZ MASTER PRO</span>
+        <div class="coin-box">💰 <span id="coin-count">0</span></div>
     </div>
 
-    <div id="pantalla-juego" class="hidden">
-        <div class="card">
-            <h2 id="titulo-nivel">Nivel 1</h2>
-            <p id="txt-pregunta">Pregunta 1 de 7</p>
-            <div id="area-puzzle" style="margin: 20px 0; font-size: 1.2rem;">¿La respuesta es correcta?</div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn" onclick="procesarRespuesta(true)">SI</button>
-                <button class="btn" onclick="procesarRespuesta(false)">NO</button>
-            </div>
+    <div id="scr-home" class="screen active">
+        <button class="menu-btn btn-ad" onclick="pedirAnuncioVoluntario()">📺 Ver Anuncio (+50 💰)</button>
+        <button class="menu-btn btn-play" onclick="irA('scr-groups')">🎮 Jugar</button>
+        <button class="menu-btn btn-pay" onclick="irA('scr-shop')">💳 Canjear PayPal</button>
+    </div>
+
+    <div id="scr-groups" class="screen">
+        <h2>Dificultad</h2>
+        <button class="menu-btn" style="background:#3b82f6" onclick="setGrupo('Fácil')">Fácil</button>
+        <button class="menu-btn" style="background:#10b981" onclick="setGrupo('Media')">Media</button>
+        <button class="menu-btn" style="background:#f59e0b" onclick="setGrupo('Difícil')">Difícil</button>
+        <button class="menu-btn" style="background:#ef4444" onclick="setGrupo('Muy Difícil')">Muy Difícil</button>
+        <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
+    </div>
+
+    <div id="scr-levels" class="screen">
+        <h2 id="lvl-title">Niveles</h2>
+        <div id="levels-container" class="levels-grid"></div>
+        <button class="menu-btn btn-gray" onclick="irA('scr-groups')">Volver</button>
+    </div>
+
+    <div id="scr-quiz" class="screen">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <span id="q-progress">1/7</span>
+            <span id="q-diff">Dificultad</span>
         </div>
-        <button class="btn" onclick="volverAlMenu()">⬅ Salir al Menú</button>
+        <h3 id="q-text" style="text-align: center; min-height: 60px;">Cargando...</h3>
+        <div id="q-options"></div>
+        
+        <div id="modal-fail">
+            <h2>¡Respuesta Incorrecta! ❌</h2>
+            <p>¿Quieres continuar el nivel o reiniciar?</p>
+            <button class="menu-btn btn-ad" onclick="continuarConAnuncio()">📺 Ver Anuncio y Continuar</button>
+            <button class="menu-btn btn-gray" onclick="irA('scr-levels')">Reiniciar Nivel</button>
+        </div>
     </div>
 
-    <div id="pantalla-tienda" class="hidden">
-        <h3>Retirar Fondos 💳</h3>
-        <div id="lista-pagos"></div>
-        <button class="btn" onclick="volverAlMenu()">⬅ Volver</button>
+    <div id="scr-shop" class="screen">
+        <h2>Tienda PayPal</h2>
+        <div id="shop-list"></div>
+        <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
     </div>
 </div>
 
 <script>
-    // --- 1. CONFIGURACIÓN Y ESTADO ---
-    const CONFIG = {
-        nombresGrupos: ["Fácil", "Medio", "Difícil", "Muy Difícil"],
-        nivelesPorGrupo: 100,
-        preguntasPorNivel: 7,
-        puntosPorAcierto: 2,
-        anuncioFrecuencia: 5
-    };
+    let monedas = 0, progreso = {"Fácil": 1, "Media": 1, "Difícil": 1, "Muy Difícil": 1};
+    let grupoActivo = "", qIdx = 0, aciertos = 0, preguntasFiltradas = [];
+    let bancoPreguntas = [];
+    let contadorPreguntasAnuncio = 0; // NUEVO: Para contar 5 preguntas
+    let audioCtx; // NUEVO: Contexto de audio
 
-    let datos = {
-        monedas: 0,
-        grupo: 0,
-        nivel: 1,
-        pregunta: 1,
-        aciertosTotales: 0
-    };
-
-    let audioCtx;
-
-    // --- 2. MOTOR DE SONIDO (5 Sonidos) ---
-    function reproducirSonido(tipo) {
+    // --- NUEVO: SISTEMA DE AUDIO SINTETIZADO ---
+    function sonar(tipo) {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
         const t = audioCtx.currentTime;
 
-        if (tipo === 'acierto') { // 1. Sonido Acierto
-            osc.frequency.setValueAtTime(500, t);
-            osc.frequency.exponentialRampToValueAtTime(1000, t + 0.1);
+        if (tipo === 'acierto') {
+            osc.frequency.setValueAtTime(600, t);
+            osc.frequency.exponentialRampToValueAtTime(1200, t + 0.1);
             gain.gain.setValueAtTime(0.1, t);
             gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
             osc.start(); osc.stop(t + 0.2);
-        } else if (tipo === 'fallo') { // 2. Sonido Equivocación
+        } else if (tipo === 'fallo') {
             osc.frequency.setValueAtTime(200, t);
             osc.frequency.linearRampToValueAtTime(50, t + 0.3);
             gain.gain.setValueAtTime(0.1, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.3);
             osc.start(); osc.stop(t + 0.3);
-        } else if (tipo === 'clic') { // 3. Sonido Botón
+        } else if (tipo === 'clic') {
             osc.frequency.setValueAtTime(800, t);
             gain.gain.setValueAtTime(0.05, t);
             gain.gain.linearRampToValueAtTime(0.01, t + 0.05);
@@ -102,112 +110,164 @@
         }
     }
 
-    // 4. Melodía de fondo suave (bucle)
+    // NUEVO: Melodía de fondo suave (cada 4 seg)
     setInterval(() => {
-        if (datos.grupo >= 0 && audioCtx && !document.getElementById('pantalla-juego').classList.contains('hidden')) {
+        if (grupoActivo !== "" && audioCtx) {
             const osc = audioCtx.createOscillator();
             const g = audioCtx.createGain();
             osc.connect(g); g.connect(audioCtx.destination);
             osc.frequency.setValueAtTime(440, audioCtx.currentTime);
             g.gain.setValueAtTime(0.005, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2);
-            osc.start(); osc.stop(audioCtx.currentTime + 2);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
+            osc.start(); osc.stop(audioCtx.currentTime + 1.5);
         }
     }, 4000);
 
-    // --- 3. LÓGICA DE JUEGO ---
-    function iniciarGrupo(idx) {
-        reproducirSonido('clic');
-        datos.grupo = idx;
-        datos.nivel = 1;
-        datos.pregunta = 1;
-        mostrarPantalla('pantalla-juego');
-        actualizarUI();
+    fetch('Ps1_comas_final.csv')
+        .then(res => res.text())
+        .then(data => {
+            const filas = data.split('\n').slice(1);
+            bancoPreguntas = filas.map(f => {
+                const c = f.split(',');
+                return { p: c[0], cor: c[1], ops: [c[1], c[2], c[3], c[4]], diff: c[5] };
+            });
+        });
+
+    function barajar(array) { return array.sort(() => Math.random() - 0.5); }
+
+    function irA(id) {
+        sonar('clic'); // NUEVO
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'scr-shop') pintarTienda();
     }
 
-    function procesarRespuesta(esCorrecta) {
-        if (esCorrecta) {
-            reproducirSonido('acierto');
-            datos.monedas += CONFIG.puntosPorAcierto;
-            datos.aciertosTotales++;
-            datos.pregunta++;
+    function setGrupo(nombre) {
+        grupoActivo = nombre;
+        preguntasFiltradas = bancoPreguntas.filter(p => p.diff === nombre);
+        document.getElementById('lvl-title').innerText = "Niveles: " + nombre;
+        pintarNiveles();
+        irA('scr-levels');
+    }
 
-            // 5. Lógica de Anuncio Obligatorio (Cada 5 preguntas)
-            if (datos.aciertosTotales % CONFIG.anuncioFrecuencia === 0) {
-                console.log("mostrarAnuncio"); // Señal para Niotron
+    function pintarNiveles() {
+        const container = document.getElementById('levels-container');
+        container.innerHTML = "";
+        for(let i=1; i<=100; i++) {
+            const b = document.createElement("button");
+            b.className = "lvl-btn";
+            if(i <= progreso[grupoActivo]) {
+                b.innerText = i; b.style.background = "#3b82f6"; b.style.color = "white";
+                b.onclick = () => iniciarNivel();
+            } else {
+                b.innerText = "🔒"; b.style.background = "#ddd";
             }
-
-            // ¿Completó las 7 preguntas del nivel?
-            if (datos.pregunta > CONFIG.preguntasPorNivel) {
-                datos.pregunta = 1;
-                datos.nivel++;
-                alert("¡Nivel " + (datos.nivel - 1) + " Completado!");
-                
-                if (datos.nivel > CONFIG.nivelesPorGrupo) {
-                    alert("¡Has terminado el grupo " + CONFIG.nombresGrupos[datos.grupo] + "!");
-                    volverAlMenu();
-                }
-            }
-        } else {
-            reproducirSonido('fallo');
-            alert("Respuesta incorrecta. El nivel se reinicia.");
-            datos.pregunta = 1; // Reinicia el progreso del nivel actual
+            container.appendChild(b);
         }
-        actualizarUI();
     }
 
-    // --- 4. INTERFAZ Y TIENDA ---
-    function actualizarUI() {
-        document.getElementById('txt-saldo').innerText = `🪙 ${datos.monedas}`;
-        document.getElementById('titulo-nivel').innerText = `Grupo: ${CONFIG.nombresGrupos[datos.grupo]} - Nivel ${datos.nivel}`;
-        document.getElementById('txt-pregunta').innerText = `Pregunta ${datos.pregunta} de 7`;
-    }
+    function iniciarNivel() { qIdx = 0; aciertos = 0; irA('scr-quiz'); cargarPregunta(); }
 
-    function mostrarTienda() {
-        reproducirSonido('clic');
-        const lista = document.getElementById('lista-pagos');
-        lista.innerHTML = '';
-        const pagos = [
-            {eur: "0.05", coste: 50}, {eur: "0.10", coste: 100},
-            {eur: "0.50", coste: 500}, {eur: "1.00", coste: 1000},
-            {eur: "2.00", coste: 2000}, {eur: "5.00", coste: 5000},
-            {eur: "10.00", coste: 9000}, {eur: "20.00", coste: 18000}
-        ];
-
-        pagos.forEach(p => {
-            const btn = document.createElement('button');
-            btn.className = 'btn';
-            btn.innerText = `Retirar ${p.eur}€ (${p.coste} 🪙)`;
+    function cargarPregunta() {
+        document.getElementById('modal-fail').style.display = 'none';
+        const qData = preguntasFiltradas[Math.floor(Math.random() * preguntasFiltradas.length)];
+        const opsBarajadas = barajar([...qData.ops]);
+        
+        document.getElementById('q-progress').innerText = (qIdx + 1) + "/7";
+        document.getElementById('q-diff').innerText = grupoActivo;
+        document.getElementById('q-text').innerText = qData.p;
+        
+        const box = document.getElementById('q-options');
+        box.innerHTML = "";
+        opsBarajadas.forEach(opt => {
+            const btn = document.createElement("button");
+            btn.className = "opt-btn";
+            btn.innerText = opt;
             btn.onclick = () => {
-                if (datos.monedas >= p.coste) {
-                    datos.monedas -= p.coste;
-                    actualizarUI();
-                    alert("Solicitud de " + p.eur + "€ enviada correctamente.");
+                if(opt === qData.cor) {
+                    sonar('acierto'); // NUEVO
+                    btn.style.background = "#10b981"; btn.style.color = "white";
+                    aciertos++;
+                    contadorPreguntasAnuncio++; // NUEVO
+                    
+                    // NUEVO: Anuncio obligatorio cada 5 preguntas
+                    if(contadorPreguntasAnuncio >= 5) {
+                        contadorPreguntasAnuncio = 0;
+                        console.log("mostrarAnuncio"); // Señal para Niotron
+                    }
+
+                    setTimeout(() => { qIdx++; qIdx < 7 ? cargarPregunta() : finalizar(); }, 1000);
                 } else {
-                    alert("Necesitas " + (p.coste - datos.monedas) + " monedas más.");
+                    sonar('fallo'); // NUEVO
+                    btn.style.background = "#ef4444"; btn.style.color = "white";
+                    setTimeout(() => document.getElementById('modal-fail').style.display = 'flex', 500);
                 }
             };
-            lista.appendChild(btn);
+            box.appendChild(btn);
         });
-        mostrarPantalla('pantalla-tienda');
     }
 
-    function mostrarPantalla(id) {
-        document.getElementById('menu-principal').classList.add('hidden');
-        document.getElementById('pantalla-juego').classList.add('hidden');
-        document.getElementById('pantalla-tienda').classList.add('hidden');
-        document.getElementById(id).classList.remove('hidden');
+    function finalizar() {
+        if(aciertos >= 7) { // Corregido a 7 aciertos
+            monedas += 70; progreso[grupoActivo]++;
+            alert("¡Nivel superado! +70 💰");
+        }
+        actualizarMarcador(); irA('scr-levels'); pintarNiveles();
     }
 
-    function volverAlMenu() {
-        reproducirSonido('clic');
-        mostrarPantalla('menu-principal');
+    // NUEVO: Función segura para el botón de la home
+    function pedirAnuncioVoluntario() {
+        sonar('clic');
+        console.log("mostrarAnuncio");
     }
 
-    // Función que llama Niotron para dar monedas extra por anuncio voluntario
+    // NUEVO: Esta función la llama Niotron desde "EvaluateJS" cuando cierra el anuncio
     function darRecompensa() {
-        datos.monedas += 50;
-        actualizarUI();
+        monedas += 50;
+        actualizarMarcador();
+        alert("¡Recibiste +50 monedas! 💰");
+    }
+
+    function actualizarMarcador() { document.getElementById('coin-count').innerText = monedas; }
+    
+    function continuarConAnuncio() { 
+        console.log("mostrarAnuncio"); // Pide anuncio para revivir
+        document.getElementById('modal-fail').style.display = 'none'; 
+        qIdx++; 
+        qIdx < 7 ? cargarPregunta() : finalizar(); 
+    }
+
+    function pintarTienda() {
+        const list = document.getElementById('shop-list');
+        list.innerHTML = "";
+        const pagos = [
+            {e:"0.05", c:7000}, {e:"0.10", c:10000}, {e:"0.50", c:14000}, {e:"1", c:18500},
+            {e:"5", c:23000}, {e:"10", c:30000}, {e:"15", c:35500}, {e:"20", c:41000}
+        ];
+        pagos.forEach(p => {
+            const item = document.createElement("div");
+            item.style = "display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee";
+            item.innerHTML = `<span>PayPal <b>${p.e}€</b></span>`;
+            
+            const btn = document.createElement("button");
+            btn.className = "btn-pay";
+            btn.style = "padding:5px 10px; border-radius:5px; border:none; background:#6366f1; color:white; cursor:pointer;";
+            btn.innerText = `${p.c} 💰`;
+            
+            // NUEVO: Validación de saldo
+            btn.onclick = () => {
+                if(monedas >= p.c) {
+                    monedas -= p.c;
+                    actualizarMarcador();
+                    alert("Solicitud de " + p.e + "€ enviada correctamente.");
+                } else {
+                    sonar('fallo');
+                    alert("No tienes monedas suficientes. Te faltan " + (p.c - monedas));
+                }
+            };
+            item.appendChild(btn);
+            list.appendChild(item);
+        });
     }
 </script>
 </body>
