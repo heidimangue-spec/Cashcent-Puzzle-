@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Master Final</title>
+    <title>Quiz Master Final - Sonido & Ads</title>
     <style>
         :root { --p-color: #2563eb; --s-color: #10b981; --bg: #f3f4f6; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
-        #app { width: 100%; max-width: 450px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; }
+        #app { width: 100%; max-width: 450px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; overflow-x: hidden; }
         .top-bar { background: var(--p-color); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
         .coin-box { background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; }
+        .sound-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 10px; cursor: pointer; font-weight: bold; }
         .screen { padding: 20px; display: none; }
         .active { display: block; }
-        .menu-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; }
+        .menu-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
+        .menu-btn:active { transform: scale(0.98); }
         .btn-play { background: var(--s-color); }
         .btn-ad { background: #f59e0b; }
         .btn-pay { background: #6366f1; }
@@ -28,11 +30,14 @@
 <div id="app">
     <div class="top-bar">
         <span>QUIZ MASTER PRO</span>
-        <div class="coin-box">💰 <span id="coin-count">0</span></div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button id="btn-mudo" class="sound-btn" onclick="toggleSonido()">🔊 ON</button>
+            <div class="coin-box">💰 <span id="coin-count">0</span></div>
+        </div>
     </div>
 
     <div id="scr-home" class="screen active">
-        <button class="menu-btn btn-ad" onclick="pedirAnuncioVoluntario()">📺 Ver Anuncio (+50 💰)</button>
+        <button class="menu-btn btn-ad" onclick="pedirAnuncioRecompensa()">📺 Ver Anuncio (+50 💰)</button>
         <button class="menu-btn btn-play" onclick="irA('scr-groups')">🎮 Jugar</button>
         <button class="menu-btn btn-pay" onclick="irA('scr-shop')">💳 Canjear PayPal</button>
     </div>
@@ -63,7 +68,7 @@
         <div id="modal-fail">
             <h2>¡Respuesta Incorrecta! ❌</h2>
             <p>¿Quieres continuar el nivel o reiniciar?</p>
-            <button class="menu-btn btn-ad" onclick="continuarConAnuncio()">📺 Ver Anuncio y Continuar</button>
+            <button class="menu-btn btn-ad" onclick="revivirConAnuncio()">📺 Ver Anuncio y Continuar</button>
             <button class="menu-btn btn-gray" onclick="irA('scr-levels')">Reiniciar Nivel</button>
         </div>
     </div>
@@ -76,15 +81,23 @@
 </div>
 
 <script>
-    let monedas = 0, progreso = {"Fácil": 1, "Media": 1, "Difícil": 1, "Muy Difícil": 1};
-    let grupoActivo = "", qIdx = 0, aciertos = 0, preguntasFiltradas = [];
+    // --- VARIABLES ---
+    let monedas = 0;
+    let progreso = {"Fácil": 1, "Media": 1, "Difícil": 1, "Muy Difícil": 1};
+    let grupoActivo = "", qIdx = 0, aciertosNivel = 0, preguntasFiltradas = [];
     let bancoPreguntas = [];
-    let contadorPreguntasAnuncio = 0; // NUEVO: Para contar 5 preguntas
-    let audioCtx; // NUEVO: Contexto de audio
+    let contadorPreguntasAnuncio = 0;
+    
+    // --- AUDIO ---
+    let audioCtx;
+    let sonidoActivado = true;
+    let melodiaInterval;
 
-    // --- NUEVO: SISTEMA DE AUDIO SINTETIZADO ---
     function sonar(tipo) {
+        if (!sonidoActivado) return;
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
@@ -97,11 +110,11 @@
             gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
             osc.start(); osc.stop(t + 0.2);
         } else if (tipo === 'fallo') {
-            osc.frequency.setValueAtTime(200, t);
-            osc.frequency.linearRampToValueAtTime(50, t + 0.3);
-            gain.gain.setValueAtTime(0.1, t);
-            gain.gain.linearRampToValueAtTime(0.01, t + 0.3);
-            osc.start(); osc.stop(t + 0.3);
+            osc.frequency.setValueAtTime(150, t);
+            osc.frequency.linearRampToValueAtTime(100, t + 0.2);
+            gain.gain.setValueAtTime(0.2, t);
+            gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
+            osc.start(); osc.stop(t + 0.2);
         } else if (tipo === 'clic') {
             osc.frequency.setValueAtTime(800, t);
             gain.gain.setValueAtTime(0.05, t);
@@ -110,19 +123,29 @@
         }
     }
 
-    // NUEVO: Melodía de fondo suave (cada 4 seg)
-    setInterval(() => {
-        if (grupoActivo !== "" && audioCtx) {
-            const osc = audioCtx.createOscillator();
-            const g = audioCtx.createGain();
-            osc.connect(g); g.connect(audioCtx.destination);
-            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-            g.gain.setValueAtTime(0.005, audioCtx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
-            osc.start(); osc.stop(audioCtx.currentTime + 1.5);
-        }
-    }, 4000);
+    function toggleSonido() {
+        sonidoActivado = !sonidoActivado;
+        document.getElementById('btn-mudo').innerText = sonidoActivado ? "🔊 ON" : "🔇 OFF";
+        sonar('clic');
+    }
 
+    function iniciarMelodia() {
+        if (melodiaInterval) return;
+        melodiaInterval = setInterval(() => {
+            if (sonidoActivado && grupoActivo !== "" && audioCtx && !document.getElementById('scr-home').classList.contains('active')) {
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(261.63, audioCtx.currentTime); // Do
+                g.gain.setValueAtTime(0.01, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+            }
+        }, 3000);
+    }
+
+    // --- LÓGICA JUEGO ---
     fetch('Ps1_comas_final.csv')
         .then(res => res.text())
         .then(data => {
@@ -136,7 +159,7 @@
     function barajar(array) { return array.sort(() => Math.random() - 0.5); }
 
     function irA(id) {
-        sonar('clic'); // NUEVO
+        sonar('clic');
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         if(id === 'scr-shop') pintarTienda();
@@ -166,7 +189,12 @@
         }
     }
 
-    function iniciarNivel() { qIdx = 0; aciertos = 0; irA('scr-quiz'); cargarPregunta(); }
+    function iniciarNivel() {
+        qIdx = 0; aciertosNivel = 0;
+        iniciarMelodia();
+        irA('scr-quiz');
+        cargarPregunta();
+    }
 
     function cargarPregunta() {
         document.getElementById('modal-fail').style.display = 'none';
@@ -185,20 +213,23 @@
             btn.innerText = opt;
             btn.onclick = () => {
                 if(opt === qData.cor) {
-                    sonar('acierto'); // NUEVO
+                    sonar('acierto');
                     btn.style.background = "#10b981"; btn.style.color = "white";
-                    aciertos++;
-                    contadorPreguntasAnuncio++; // NUEVO
+                    aciertosNivel++;
+                    contadorPreguntasAnuncio++;
                     
-                    // NUEVO: Anuncio obligatorio cada 5 preguntas
+                    // Anuncio automático cada 5 preguntas
                     if(contadorPreguntasAnuncio >= 5) {
                         contadorPreguntasAnuncio = 0;
-                        console.log("mostrarAnuncio"); // Señal para Niotron
+                        console.log("mostrarAnuncio");
                     }
 
-                    setTimeout(() => { qIdx++; qIdx < 7 ? cargarPregunta() : finalizar(); }, 1000);
+                    setTimeout(() => { 
+                        qIdx++; 
+                        qIdx < 7 ? cargarPregunta() : finalizarNivel(); 
+                    }, 800);
                 } else {
-                    sonar('fallo'); // NUEVO
+                    sonar('fallo');
                     btn.style.background = "#ef4444"; btn.style.color = "white";
                     setTimeout(() => document.getElementById('modal-fail').style.display = 'flex', 500);
                 }
@@ -207,34 +238,36 @@
         });
     }
 
-    function finalizar() {
-        if(aciertos >= 7) { // Corregido a 7 aciertos
-            monedas += 70; progreso[grupoActivo]++;
-            alert("¡Nivel superado! +70 💰");
-        }
-        actualizarMarcador(); irA('scr-levels'); pintarNiveles();
+    function finalizarNivel() {
+        monedas += 70;
+        progreso[grupoActivo]++;
+        alert("¡Nivel superado! +70 💰");
+        actualizarMarcador();
+        irA('scr-levels');
+        pintarNiveles();
     }
 
-    // NUEVO: Función segura para el botón de la home
-    function pedirAnuncioVoluntario() {
+    // --- ANUNCIOS Y TIENDA ---
+    function pedirAnuncioRecompensa() {
         sonar('clic');
         console.log("mostrarAnuncio");
     }
 
-    // NUEVO: Esta función la llama Niotron desde "EvaluateJS" cuando cierra el anuncio
+    // Llamada externa desde Niotron (EvaluateJS)
     function darRecompensa() {
         monedas += 50;
         actualizarMarcador();
         alert("¡Recibiste +50 monedas! 💰");
     }
 
-    function actualizarMarcador() { document.getElementById('coin-count').innerText = monedas; }
-    
-    function continuarConAnuncio() { 
-        console.log("mostrarAnuncio"); // Pide anuncio para revivir
-        document.getElementById('modal-fail').style.display = 'none'; 
-        qIdx++; 
-        qIdx < 7 ? cargarPregunta() : finalizar(); 
+    function revivirConAnuncio() {
+        console.log("mostrarAnuncio");
+        document.getElementById('modal-fail').style.display = 'none';
+        cargarPregunta();
+    }
+
+    function actualizarMarcador() {
+        document.getElementById('coin-count').innerText = monedas;
     }
 
     function pintarTienda() {
@@ -245,30 +278,30 @@
             {e:"5", c:23000}, {e:"10", c:30000}, {e:"15", c:35500}, {e:"20", c:41000}
         ];
         pagos.forEach(p => {
-            const item = document.createElement("div");
-            item.style = "display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee";
-            item.innerHTML = `<span>PayPal <b>${p.e}€</b></span>`;
+            const div = document.createElement("div");
+            div.style = "display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee; align-items:center;";
+            div.innerHTML = `<span>PayPal <b>${p.e}€</b></span>`;
             
             const btn = document.createElement("button");
             btn.className = "btn-pay";
-            btn.style = "padding:5px 10px; border-radius:5px; border:none; background:#6366f1; color:white; cursor:pointer;";
+            btn.style = "padding:8px 15px; border-radius:8px; border:none; background:#6366f1; color:white; font-weight:bold; cursor:pointer;";
             btn.innerText = `${p.c} 💰`;
             
-            // NUEVO: Validación de saldo
             btn.onclick = () => {
                 if(monedas >= p.c) {
                     monedas -= p.c;
                     actualizarMarcador();
-                    alert("Solicitud de " + p.e + "€ enviada correctamente.");
+                    alert("¡Solicitud enviada! Recibirás " + p.e + "€ en tu cuenta.");
                 } else {
                     sonar('fallo');
-                    alert("No tienes monedas suficientes. Te faltan " + (p.c - monedas));
+                    alert("Necesitas " + (p.c - monedas) + " monedas más.");
                 }
             };
-            item.appendChild(btn);
-            list.appendChild(item);
+            div.appendChild(btn);
+            list.appendChild(div);
         });
     }
 </script>
 </body>
-</html>
+                </html>
+    
