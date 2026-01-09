@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zetallix - Cash Puzzle</title>
+    <title>Zetallix - Quiz & Cash</title>
     <style>
         :root { --p-color: #2563eb; --s-color: #10b981; --bg: #f3f4f6; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; justify-content: center; }
-        #app { width: 100%; max-width: 450px; background: white; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+        body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
+        #app { width: 100%; max-width: 450px; background: white; min-height: 100vh; position: relative; display: flex; flex-direction: column; }
         
-        /* Interfaz */
+        /* Encabezado */
         .top-bar { background: var(--p-color); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
         .coin-box { background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; }
+        
+        /* Pantallas */
         .screen { padding: 20px; display: none; flex: 1; }
         .active { display: block; }
         
@@ -23,12 +25,10 @@
         .btn-gray { background: #6b7280; }
         .mute-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white; }
 
-        /* Niveles y Quiz */
+        /* Juego y Niveles */
         .levels-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; }
-        .lvl-btn { aspect-ratio: 1; border-radius: 10px; border: none; font-weight: bold; color: white; cursor: pointer; }
+        .lvl-btn { aspect-ratio: 1; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; color: white; }
         .opt-btn { background: white; border: 2px solid #e5e7eb; width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; font-weight: bold; cursor: pointer; text-align: left; }
-        
-        #modal-fail { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -36,157 +36,143 @@
 <div id="app">
     <div class="top-bar">
         <div style="display: flex; align-items: center; gap: 10px;">
-            <button class="mute-btn" onclick="toggleMute()">🔊</button>
+            <button class="mute-btn" id="btn-audio" onclick="toggleMute()">🔊</button>
             <span>ZETALLIX</span>
         </div>
         <div class="coin-box">💰 <span id="coin-count">0</span></div>
     </div>
 
     <div id="scr-home" class="screen active">
-        <button class="menu-btn btn-ad" onclick="pedirAnuncio(50)">📺 Ver Anuncio (+50 💰)</button>
-        <button class="menu-btn btn-play" onclick="irA('scr-groups')">🎮 Jugar</button>
-        <button class="menu-btn btn-pay" onclick="irA('scr-shop')">💳 Canjear PayPal</button>
+        <button class="menu-btn btn-ad" onclick="recompensarAnuncio(50)">📺 Ver Anuncio (+50 💰)</button>
+        <button class="menu-btn btn-play" onclick="navegar('scr-groups')">🎮 Jugar</button>
+        <button class="menu-btn btn-pay" onclick="navegar('scr-shop')">💳 Canjear PayPal</button>
     </div>
 
     <div id="scr-groups" class="screen">
         <h2>Dificultad</h2>
-        <button class="menu-btn" style="background:#3b82f6" onclick="setGrupo('Fácil')">Fácil</button>
-        <button class="menu-btn" style="background:#10b981" onclick="setGrupo('Media')">Media</button>
-        <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
+        <button class="menu-btn" style="background:#3b82f6" onclick="seleccionarGrupo('Fácil')">Fácil</button>
+        <button class="menu-btn" style="background:#10b981" onclick="seleccionarGrupo('Media')">Media</button>
+        <button class="menu-btn btn-gray" onclick="navegar('scr-home')">Volver</button>
     </div>
 
     <div id="scr-levels" class="screen">
         <h2 id="lvl-title">Niveles</h2>
         <div id="levels-container" class="levels-grid"></div>
-        <button class="menu-btn btn-gray" onclick="irA('scr-groups')">Volver</button>
+        <button class="menu-btn btn-gray" onclick="navegar('scr-groups')">Volver</button>
     </div>
 
     <div id="scr-quiz" class="screen">
         <h3 id="q-texto">Cargando...</h3>
         <div id="q-opciones"></div>
-        <div id="modal-fail">
-            <h2>¡Incorrecto! ❌</h2>
-            <button class="menu-btn btn-ad" onclick="pedirAnuncio(0, true)">📺 Ver Anuncio y Continuar</button>
-            <button class="menu-btn btn-gray" onclick="irA('scr-levels')">Reiniciar</button>
-        </div>
     </div>
 
     <div id="scr-shop" class="screen">
-        <h2>Tienda PayPal 💳</h2>
+        <h2>Tienda 💳</h2>
         <div id="shop-list"></div>
-        <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
+        <button class="menu-btn btn-gray" onclick="navegar('scr-home')">Volver</button>
     </div>
 </div>
 
 <script>
+    // Configuración AdMob y Estado Inicial
     const ADMOB_ID = "ca-app-pub-6417146963108410/6814686673";
     let monedas = 0, sonidoActivo = true, progreso = {"Fácil": 1, "Media": 1};
-    let grupoActivo = "", qIdx = 0, banco = [];
+    let grupoActual = "", qIndex = 0, bancoPreguntas = [];
 
-    // --- SONIDO (Sintetizado para evitar archivos externos) ---
-    function sonar() {
+    // --- SISTEMA DE AUDIO ---
+    // Usamos una nota sintetizada para evitar archivos externos que puedan fallar en la APK
+    function reproducirEfecto() {
         if (!sonidoActivo) return;
         try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.frequency.value = 600;
-            gain.gain.setValueAtTime(0.1, ctx.currentTime);
-            osc.start(); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-            osc.stop(ctx.currentTime + 0.1);
-        } catch(e) {}
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(550, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.stop(audioCtx.currentTime + 0.1);
+        } catch(e) { console.log("Audio no soportado"); }
     }
 
     function toggleMute() {
         sonidoActivo = !sonidoActivo;
-        document.querySelector('.mute-btn').innerText = sonidoActivo ? "🔊" : "🔇";
+        document.getElementById('btn-audio').innerText = sonidoActivo ? "🔊" : "🔇";
     }
 
-    // --- CARGAR DATOS (Con protección ante errores) ---
+    // --- CARGA DE DATOS ---
     fetch('Ps1_comas_final.csv')
-        .then(r => r.text())
-        .then(t => {
-            const filas = t.split('\n').slice(1);
-            banco = filas.filter(f => f.trim() !== "").map(f => {
+        .then(res => res.text())
+        .then(csv => {
+            const filas = csv.split('\n').slice(1);
+            bancoPreguntas = filas.filter(f => f.trim() !== "").map(f => {
                 const c = f.split(',');
                 return { p: c[0], cor: c[1], ops: [c[1], c[2], c[3], c[4]], diff: c[5]?.trim() };
             });
-        }).catch(e => console.log("CSV no encontrado, el juego usará datos vacíos."));
+        }).catch(err => console.log("Error cargando CSV"));
 
-    // --- NAVEGACIÓN ---
-    function irA(id) {
-        sonar();
+    // --- NAVEGACIÓN Y ANUNCIOS ---
+    function navegar(id) {
+        reproducirEfecto();
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id === 'scr-shop') pintarTienda();
+        if(id === 'scr-shop') actualizarTienda();
     }
 
-    // --- LÓGICA ANUNCIOS (Web2App usa JSInterface) ---
-    function pedirAnuncio(recompensa, revivir = false) {
-        sonar();
+    function recompensarAnuncio(valor) {
+        reproducirEfecto();
+        // Llamada a la interfaz nativa de Web2App
         if (window.JSInterface && window.JSInterface.showInterstitial) {
             window.JSInterface.showInterstitial(ADMOB_ID);
-        } else if (window.Android && window.Android.showInterstitial) {
-            window.Android.showInterstitial(ADMOB_ID);
-        } else {
-            console.log("Anuncio simulado (Navegador)");
         }
-
-        if(revivir) {
-            document.getElementById('modal-fail').style.display='none';
-            qIdx++; proximaQ();
-        } else if(recompensa > 0) {
-            monedas += recompensa;
-            document.getElementById('coin-count').innerText = monedas;
-        }
+        monedas += valor;
+        document.getElementById('coin-count').innerText = monedas;
     }
 
-    // --- JUEGO ---
-    function setGrupo(g) { grupoActivo = g; irA('scr-levels'); actNiveles(); }
-    function actNiveles() {
-        const c = document.getElementById('levels-container'); c.innerHTML = "";
-        for(let i=1; i<=20; i++) {
-            const b = document.createElement('button'); b.className = 'lvl-btn';
-            const ok = i <= progreso[grupoActivo];
-            b.innerText = ok ? i : "🔒"; b.style.background = ok ? "var(--p-color)" : "#ccc";
-            if(ok) b.onclick = () => { qIdx = 0; irA('scr-quiz'); proximaQ(); };
-            c.appendChild(b);
-        }
+    // --- LÓGICA DEL JUEGO (Simplificada) ---
+    function seleccionarGrupo(g) {
+        grupoActual = g;
+        navegar('scr-levels');
+        dibujarNiveles();
     }
 
-    function proximaQ() {
-        document.getElementById('modal-fail').style.display = 'none';
-        const posibles = banco.filter(p => p.diff === grupoActivo);
-        if(posibles.length === 0) { alert("No hay preguntas para este grupo"); return irA('scr-home'); }
-        const q = posibles[Math.floor(Math.random() * posibles.length)];
-        document.getElementById('q-texto').innerText = q.p;
-        const cont = document.getElementById('q-opciones'); cont.innerHTML = "";
-        [...q.ops].sort(()=>Math.random()-0.5).forEach(o => {
-            const btn = document.createElement('button'); btn.className = 'opt-btn'; btn.innerText = o;
-            btn.onclick = () => {
-                sonar();
-                if(o === q.cor) {
-                    qIdx++;
-                    if(qIdx < 7) proximaQ();
-                    else { monedas+=70; progreso[grupoActivo]++; document.getElementById('coin-count').innerText = monedas; irA('scr-levels'); }
-                } else document.getElementById('modal-fail').style.display = 'flex';
-            };
+    function dibujarNiveles() {
+        const cont = document.getElementById('levels-container');
+        cont.innerHTML = "";
+        for(let i=1; i<=15; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'lvl-btn';
+            const unlock = i <= progreso[grupoActual];
+            btn.innerText = unlock ? i : "🔒";
+            btn.style.background = unlock ? "var(--p-color)" : "#ccc";
+            if(unlock) btn.onclick = () => { qIndex = 0; navegar('scr-quiz'); iniciarQuiz(); };
             cont.appendChild(btn);
+        }
+    }
+
+    function iniciarQuiz() {
+        const q = bancoPreguntas.filter(p => p.diff === grupoActual)[0]; // Ejemplo
+        document.getElementById('q-texto').innerText = q.p;
+        const opts = document.getElementById('q-opciones');
+        opts.innerHTML = "";
+        q.ops.forEach(o => {
+            const b = document.createElement('button');
+            b.className = 'opt-btn'; b.innerText = o;
+            b.onclick = () => {
+                if(o === q.cor) { monedas += 10; navegar('scr-levels'); }
+                else { alert("Incorrecto"); navegar('scr-home'); }
+            };
+            opts.appendChild(b);
         });
     }
 
-    function pintarTienda() {
-        const cont = document.getElementById('shop-list'); cont.innerHTML = "";
-        [{v:"0.10", c:10000}, {v:"0.50", c:14000}].forEach(p => {
-            const ok = monedas >= p.c;
-            cont.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee">
-                <span>PayPal <b>${p.v}€</b></span>
-                <button class="menu-btn" style="width:auto; margin:0; padding:5px 10px; background:${ok?'#6366f1':'#9ca3af'}" onclick="alert('Email de pago solicitado')">${p.c} 💰</button>
-            </div>`;
-        });
+    function actualizarTienda() {
+        const cont = document.getElementById('shop-list');
+        cont.innerHTML = `<div style="padding:10px; border-bottom:1px solid #eee">
+            PayPal 0.10€ - 10000 💰 <button class="menu-btn btn-pay" style="width:auto; float:right">Canjear</button>
+        </div>`;
     }
 </script>
 </body>
-            </html>
-    
+</html>
