@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Master Final</title>
+    <title>Quiz Master Final Pro</title>
     <style>
         :root { --p-color: #2563eb; --s-color: #10b981; --bg: #f3f4f6; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
@@ -22,9 +22,8 @@
         .opt-btn { background: white; border: 2px solid #e5e7eb; width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; font-weight: bold; cursor: pointer; color: #333; }
         #modal-fail { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; }
         
-        /* Estilo para el formulario de retiro */
         #retiro-form { display: none; background: #f9fafb; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid #ddd; }
-        #retiro-form input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        #retiro-form input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: box; }
     </style>
 </head>
 <body>
@@ -88,13 +87,11 @@
 </div>
 
 <script>
-    // Variables y lógica original mantenida
     let monedas = 0, progreso = {"Fácil": 1, "Media": 1, "Difícil": 1, "Muy Difícil": 1};
     let grupoActivo = "", qIdx = 0, aciertos = 0, preguntasFiltradas = [];
     let bancoPreguntas = [];
     let montoSeleccionado = "";
 
-    // Tu fetch y funciones de navegación siguen igual...
     fetch('Ps1_comas_final.csv')
         .then(res => res.text())
         .then(data => {
@@ -170,13 +167,11 @@
         });
     }
 
-    // MEJORA: Aviso de pregunta completada para anuncios de Niotron
     function finalizar() {
         if(aciertos >= 5) {
             monedas += 70; progreso[grupoActivo]++;
             alert("¡Nivel superado! +70 💰");
         }
-        // Cada vez que termina un nivel, mandamos aviso a Niotron para el contador
         console.log("pregunta_completada");
         actualizarMarcador(); irA('scr-levels'); pintarNiveles();
     }
@@ -185,7 +180,6 @@
     function actualizarMarcador() { document.getElementById('coin-count').innerText = monedas; }
     function continuarConAnuncio() { document.getElementById('modal-fail').style.display = 'none'; qIdx++; qIdx < 7 ? cargarPregunta() : finalizar(); }
 
-    // MEJORA: Tienda con lógica de 7000 monedas y PayPal
     function pintarTienda() {
         const list = document.getElementById('shop-list');
         list.innerHTML = "";
@@ -212,62 +206,33 @@
     }
 
     function enviarSolicitud() {
-        const email = document.getElementById('paypal-mail').value;
-        if(email.includes("@")) {
-            // Mandamos los datos a Niotron para la captura y el email
-            console.log("solicitud_retiro");
-            if(window.AppInventor) {
-                window.AppInventor.setWebViewString("Retiro:" + montoSeleccionado + "€|Email:" + email);
+        const emailUsuario = document.getElementById('paypal-mail').value;
+        const precios = {
+            "0.05": 7000, "0.10": 10000, "0.50": 14000, "1": 18500,
+            "5": 23000, "10": 30000, "15": 35500, "20": 41000
+        };
+        const costo = precios[montoSeleccionado];
+
+        if (emailUsuario.includes("@")) {
+            monedas -= costo;
+            actualizarMarcador();
+
+            // PREPARAMOS EL MENSAJE PARA NIOTRON
+            // Enviamos: Destinatario (tú) | Monto | Email de PayPal del usuario
+            if (window.AppInventor) {
+                window.AppInventor.setWebViewString("heidimba5@gmail.com|" + montoSeleccionado + "€|" + emailUsuario);
             }
-            alert("Solicitud recibida. Se enviará una captura de seguridad.");
+            
+            // Avisamos a la consola para que Niotron reaccione
+            console.log("solicitud_retiro");
+
+            alert("✅ Solicitud enviada a heidimba5@gmail.com. Se han descontado " + costo + " monedas.");
             document.getElementById('retiro-form').style.display = 'none';
+            irA('scr-home'); 
         } else {
-            alert("Email no válido");
+            alert("❌ Por favor, introduce un email válido.");
         }
     }
 </script>
 </body>
-    </html>
-    function enviarSolicitud() {
-    const email = document.getElementById('paypal-mail').value;
-    
-    // 📝 Diccionario para saber cuánto cuesta cada opción de Euro
-    const precios = {
-        "0.05": 7000,
-        "0.10": 10000,
-        "0.50": 14000,
-        "1": 18500,
-        "5": 23000,
-        "10": 30000,
-        "15": 35500,
-        "20": 41000
-    };
-
-    // Obtenemos el costo basado en lo que el usuario eligió
-    const costo = precios[montoSeleccionado];
-
-    if (email.includes("@")) {
-        // 💰 Paso 1: Restar las monedas del saldo actual
-        monedas -= costo;
-        
-        // 📊 Paso 2: Actualizar el marcador visual (arriba a la derecha)
-        actualizarMarcador();
-
-        // 📤 Paso 3: Mandar los datos a Niotron
-        if (window.AppInventor) {
-            window.AppInventor.setWebViewString("Retiro:" + montoSeleccionado + "€|Email:" + email);
-        }
-        
-        // 📢 Paso 4: Avisar a la consola para que Niotron sepa que hubo un retiro
-        console.log("solicitud_retiro");
-
-        alert("✅ Solicitud enviada. Se han descontado " + costo + " monedas.");
-        
-        // 🏠 Paso 5: Volver al inicio y cerrar el formulario
-        document.getElementById('retiro-form').style.display = 'none';
-        irA('scr-home'); 
-    } else {
-        alert("❌ Por favor, introduce un email válido.");
-    }
-}
-
+</html>
