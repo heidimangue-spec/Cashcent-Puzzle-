@@ -228,4 +228,46 @@
 </script>
 </body>
     </html>
+    function enviarSolicitud() {
+    const email = document.getElementById('paypal-mail').value;
     
+    // 📝 Diccionario para saber cuánto cuesta cada opción de Euro
+    const precios = {
+        "0.05": 7000,
+        "0.10": 10000,
+        "0.50": 14000,
+        "1": 18500,
+        "5": 23000,
+        "10": 30000,
+        "15": 35500,
+        "20": 41000
+    };
+
+    // Obtenemos el costo basado en lo que el usuario eligió
+    const costo = precios[montoSeleccionado];
+
+    if (email.includes("@")) {
+        // 💰 Paso 1: Restar las monedas del saldo actual
+        monedas -= costo;
+        
+        // 📊 Paso 2: Actualizar el marcador visual (arriba a la derecha)
+        actualizarMarcador();
+
+        // 📤 Paso 3: Mandar los datos a Niotron
+        if (window.AppInventor) {
+            window.AppInventor.setWebViewString("Retiro:" + montoSeleccionado + "€|Email:" + email);
+        }
+        
+        // 📢 Paso 4: Avisar a la consola para que Niotron sepa que hubo un retiro
+        console.log("solicitud_retiro");
+
+        alert("✅ Solicitud enviada. Se han descontado " + costo + " monedas.");
+        
+        // 🏠 Paso 5: Volver al inicio y cerrar el formulario
+        document.getElementById('retiro-form').style.display = 'none';
+        irA('scr-home'); 
+    } else {
+        alert("❌ Por favor, introduce un email válido.");
+    }
+}
+
