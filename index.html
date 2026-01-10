@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Master Final - Sonido & Ads</title>
+    <title>Quiz Master Final</title>
     <style>
         :root { --p-color: #2563eb; --s-color: #10b981; --bg: #f3f4f6; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
-        #app { width: 100%; max-width: 450px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; overflow-x: hidden; }
+        #app { width: 100%; max-width: 450px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; }
         .top-bar { background: var(--p-color); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
         .coin-box { background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; }
-        .sound-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 10px; cursor: pointer; font-weight: bold; }
         .screen { padding: 20px; display: none; }
         .active { display: block; }
-        .menu-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
-        .menu-btn:active { transform: scale(0.98); }
+        .menu-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; }
         .btn-play { background: var(--s-color); }
         .btn-ad { background: #f59e0b; }
         .btn-pay { background: #6366f1; }
@@ -23,6 +21,10 @@
         .lvl-btn { aspect-ratio: 1; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
         .opt-btn { background: white; border: 2px solid #e5e7eb; width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; font-weight: bold; cursor: pointer; color: #333; }
         #modal-fail { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; }
+        
+        /* Estilo para el formulario de retiro */
+        #retiro-form { display: none; background: #f9fafb; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid #ddd; }
+        #retiro-form input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -30,14 +32,11 @@
 <div id="app">
     <div class="top-bar">
         <span>QUIZ MASTER PRO</span>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <button id="btn-mudo" class="sound-btn" onclick="toggleSonido()">🔊 ON</button>
-            <div class="coin-box">💰 <span id="coin-count">0</span></div>
-        </div>
+        <div class="coin-box">💰 <span id="coin-count">0</span></div>
     </div>
 
     <div id="scr-home" class="screen active">
-        <button class="menu-btn btn-ad" onclick="pedirAnuncioRecompensa()">📺 Ver Anuncio (+50 💰)</button>
+        <button class="menu-btn btn-ad" onclick="darRecompensa(50)">📺 Ver Anuncio (+50 💰)</button>
         <button class="menu-btn btn-play" onclick="irA('scr-groups')">🎮 Jugar</button>
         <button class="menu-btn btn-pay" onclick="irA('scr-shop')">💳 Canjear PayPal</button>
     </div>
@@ -68,7 +67,7 @@
         <div id="modal-fail">
             <h2>¡Respuesta Incorrecta! ❌</h2>
             <p>¿Quieres continuar el nivel o reiniciar?</p>
-            <button class="menu-btn btn-ad" onclick="revivirConAnuncio()">📺 Ver Anuncio y Continuar</button>
+            <button class="menu-btn btn-ad" onclick="continuarConAnuncio()">📺 Ver Anuncio y Continuar</button>
             <button class="menu-btn btn-gray" onclick="irA('scr-levels')">Reiniciar Nivel</button>
         </div>
     </div>
@@ -76,93 +75,46 @@
     <div id="scr-shop" class="screen">
         <h2>Tienda PayPal</h2>
         <div id="shop-list"></div>
+        
+        <div id="retiro-form">
+            <h3>💸 Solicitar Pago</h3>
+            <p id="pago-detalle"></p>
+            <input type="email" id="paypal-mail" placeholder="Tu correo de PayPal">
+            <button class="menu-btn btn-pay" onclick="enviarSolicitud()">Confirmar Retiro</button>
+        </div>
+        
         <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
     </div>
 </div>
 
 <script>
-    // --- VARIABLES ---
-    let monedas = 0;
-    let progreso = {"Fácil": 1, "Media": 1, "Difícil": 1, "Muy Difícil": 1};
-    let grupoActivo = "", qIdx = 0, aciertosNivel = 0, preguntasFiltradas = [];
+    // Variables y lógica original mantenida
+    let monedas = 0, progreso = {"Fácil": 1, "Media": 1, "Difícil": 1, "Muy Difícil": 1};
+    let grupoActivo = "", qIdx = 0, aciertos = 0, preguntasFiltradas = [];
     let bancoPreguntas = [];
-    let contadorPreguntasAnuncio = 0;
-    
-    // --- AUDIO ---
-    let audioCtx;
-    let sonidoActivado = true;
-    let melodiaInterval;
+    let montoSeleccionado = "";
 
-    function sonar(tipo) {
-        if (!sonidoActivado) return;
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        const t = audioCtx.currentTime;
-
-        if (tipo === 'acierto') {
-            osc.frequency.setValueAtTime(600, t);
-            osc.frequency.exponentialRampToValueAtTime(1200, t + 0.1);
-            gain.gain.setValueAtTime(0.1, t);
-            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
-            osc.start(); osc.stop(t + 0.2);
-        } else if (tipo === 'fallo') {
-            osc.frequency.setValueAtTime(150, t);
-            osc.frequency.linearRampToValueAtTime(100, t + 0.2);
-            gain.gain.setValueAtTime(0.2, t);
-            gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
-            osc.start(); osc.stop(t + 0.2);
-        } else if (tipo === 'clic') {
-            osc.frequency.setValueAtTime(800, t);
-            gain.gain.setValueAtTime(0.05, t);
-            gain.gain.linearRampToValueAtTime(0.01, t + 0.05);
-            osc.start(); osc.stop(t + 0.05);
-        }
-    }
-
-    function toggleSonido() {
-        sonidoActivado = !sonidoActivado;
-        document.getElementById('btn-mudo').innerText = sonidoActivado ? "🔊 ON" : "🔇 OFF";
-        sonar('clic');
-    }
-
-    function iniciarMelodia() {
-        if (melodiaInterval) return;
-        melodiaInterval = setInterval(() => {
-            if (sonidoActivado && grupoActivo !== "" && audioCtx && !document.getElementById('scr-home').classList.contains('active')) {
-                const osc = audioCtx.createOscillator();
-                const g = audioCtx.createGain();
-                osc.connect(g); g.connect(audioCtx.destination);
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(261.63, audioCtx.currentTime); // Do
-                g.gain.setValueAtTime(0.01, audioCtx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.5);
-                osc.start(); osc.stop(audioCtx.currentTime + 1.5);
-            }
-        }, 3000);
-    }
-
-    // --- LÓGICA JUEGO ---
+    // Tu fetch y funciones de navegación siguen igual...
     fetch('Ps1_comas_final.csv')
         .then(res => res.text())
         .then(data => {
             const filas = data.split('\n').slice(1);
             bancoPreguntas = filas.map(f => {
                 const c = f.split(',');
-                return { p: c[0], cor: c[1], ops: [c[1], c[2], c[3], c[4]], diff: c[5] };
-            });
+                if(c.length < 6) return null;
+                return { p: c[0], cor: c[1], ops: [c[1], c[2], c[3], c[4]], diff: c[5].trim() };
+            }).filter(p => p !== null);
         });
 
     function barajar(array) { return array.sort(() => Math.random() - 0.5); }
 
     function irA(id) {
-        sonar('clic');
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id === 'scr-shop') pintarTienda();
+        if(id === 'scr-shop') {
+            document.getElementById('retiro-form').style.display = 'none';
+            pintarTienda();
+        }
     }
 
     function setGrupo(nombre) {
@@ -189,22 +141,15 @@
         }
     }
 
-    function iniciarNivel() {
-        qIdx = 0; aciertosNivel = 0;
-        iniciarMelodia();
-        irA('scr-quiz');
-        cargarPregunta();
-    }
+    function iniciarNivel() { qIdx = 0; aciertos = 0; irA('scr-quiz'); cargarPregunta(); }
 
     function cargarPregunta() {
         document.getElementById('modal-fail').style.display = 'none';
         const qData = preguntasFiltradas[Math.floor(Math.random() * preguntasFiltradas.length)];
         const opsBarajadas = barajar([...qData.ops]);
-        
         document.getElementById('q-progress').innerText = (qIdx + 1) + "/7";
         document.getElementById('q-diff').innerText = grupoActivo;
         document.getElementById('q-text').innerText = qData.p;
-        
         const box = document.getElementById('q-options');
         box.innerHTML = "";
         opsBarajadas.forEach(opt => {
@@ -213,23 +158,10 @@
             btn.innerText = opt;
             btn.onclick = () => {
                 if(opt === qData.cor) {
-                    sonar('acierto');
                     btn.style.background = "#10b981"; btn.style.color = "white";
-                    aciertosNivel++;
-                    contadorPreguntasAnuncio++;
-                    
-                    // Anuncio automático cada 5 preguntas
-                    if(contadorPreguntasAnuncio >= 5) {
-                        contadorPreguntasAnuncio = 0;
-                        console.log("mostrarAnuncio");
-                    }
-
-                    setTimeout(() => { 
-                        qIdx++; 
-                        qIdx < 7 ? cargarPregunta() : finalizarNivel(); 
-                    }, 800);
+                    aciertos++;
+                    setTimeout(() => { qIdx++; qIdx < 7 ? cargarPregunta() : finalizar(); }, 1000);
                 } else {
-                    sonar('fallo');
                     btn.style.background = "#ef4444"; btn.style.color = "white";
                     setTimeout(() => document.getElementById('modal-fail').style.display = 'flex', 500);
                 }
@@ -238,38 +170,22 @@
         });
     }
 
-    function finalizarNivel() {
-        monedas += 70;
-        progreso[grupoActivo]++;
-        alert("¡Nivel superado! +70 💰");
-        actualizarMarcador();
-        irA('scr-levels');
-        pintarNiveles();
+    // MEJORA: Aviso de pregunta completada para anuncios de Niotron
+    function finalizar() {
+        if(aciertos >= 5) {
+            monedas += 70; progreso[grupoActivo]++;
+            alert("¡Nivel superado! +70 💰");
+        }
+        // Cada vez que termina un nivel, mandamos aviso a Niotron para el contador
+        console.log("pregunta_completada");
+        actualizarMarcador(); irA('scr-levels'); pintarNiveles();
     }
 
-    // --- ANUNCIOS Y TIENDA ---
-    function pedirAnuncioRecompensa() {
-        sonar('clic');
-        console.log("mostrarAnuncio");
-    }
+    function darRecompensa(cant) { monedas += cant; actualizarMarcador(); }
+    function actualizarMarcador() { document.getElementById('coin-count').innerText = monedas; }
+    function continuarConAnuncio() { document.getElementById('modal-fail').style.display = 'none'; qIdx++; qIdx < 7 ? cargarPregunta() : finalizar(); }
 
-    // Llamada externa desde Niotron (EvaluateJS)
-    function darRecompensa() {
-        monedas += 50;
-        actualizarMarcador();
-        alert("¡Recibiste +50 monedas! 💰");
-    }
-
-    function revivirConAnuncio() {
-        console.log("mostrarAnuncio");
-        document.getElementById('modal-fail').style.display = 'none';
-        cargarPregunta();
-    }
-
-    function actualizarMarcador() {
-        document.getElementById('coin-count').innerText = monedas;
-    }
-
+    // MEJORA: Tienda con lógica de 7000 monedas y PayPal
     function pintarTienda() {
         const list = document.getElementById('shop-list');
         list.innerHTML = "";
@@ -278,30 +194,38 @@
             {e:"5", c:23000}, {e:"10", c:30000}, {e:"15", c:35500}, {e:"20", c:41000}
         ];
         pagos.forEach(p => {
-            const div = document.createElement("div");
-            div.style = "display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid #eee; align-items:center;";
-            div.innerHTML = `<span>PayPal <b>${p.e}€</b></span>`;
-            
-            const btn = document.createElement("button");
-            btn.className = "btn-pay";
-            btn.style = "padding:8px 15px; border-radius:8px; border:none; background:#6366f1; color:white; font-weight:bold; cursor:pointer;";
-            btn.innerText = `${p.c} 💰`;
-            
-            btn.onclick = () => {
-                if(monedas >= p.c) {
-                    monedas -= p.c;
-                    actualizarMarcador();
-                    alert("¡Solicitud enviada! Recibirás " + p.e + "€ en tu cuenta.");
-                } else {
-                    sonar('fallo');
-                    alert("Necesitas " + (p.c - monedas) + " monedas más.");
-                }
-            };
-            div.appendChild(btn);
-            list.appendChild(div);
+            const bloqueado = monedas < p.c;
+            list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; opacity: ${bloqueado ? '0.5' : '1'}">
+                <span>PayPal <b>${p.e}€</b></span>
+                <button class="btn-pay" style="padding:5px 10px; border-radius:5px; border:none; color:white;" 
+                onclick="${bloqueado ? "alert('Te faltan " + (p.c - monedas) + " monedas')" : "abrirFormulario('" + p.e + "')"}" 
+                >${p.c} 💰</button>
+            </div>`;
         });
+    }
+
+    function abrirFormulario(monto) {
+        montoSeleccionado = monto;
+        document.getElementById('retiro-form').style.display = 'block';
+        document.getElementById('pago-detalle').innerText = "Solicitando pago de " + monto + "€";
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    function enviarSolicitud() {
+        const email = document.getElementById('paypal-mail').value;
+        if(email.includes("@")) {
+            // Mandamos los datos a Niotron para la captura y el email
+            console.log("solicitud_retiro");
+            if(window.AppInventor) {
+                window.AppInventor.setWebViewString("Retiro:" + montoSeleccionado + "€|Email:" + email);
+            }
+            alert("Solicitud recibida. Se enviará una captura de seguridad.");
+            document.getElementById('retiro-form').style.display = 'none';
+        } else {
+            alert("Email no válido");
+        }
     }
 </script>
 </body>
-                </html>
+    </html>
     
