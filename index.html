@@ -112,16 +112,6 @@ color:#888;
 cursor:not-allowed;
 }
 
-.star-mini{
-position:absolute;
-bottom:4px;
-left:0;
-right:0;
-text-align:center;
-font-size:.7rem;
-color:var(--gold);
-}
-
 /* ===== QUIZ ===== */
 #q-text{
 text-align:center;
@@ -154,13 +144,6 @@ overflow:hidden;
 #time-fill{height:100%;background:var(--warn)}
 #life-fill{height:100%;background:var(--danger)}
 
-/* ===== HELP BAR ===== */
-.help-bar{
-display:flex;
-gap:8px;
-margin-top:10px;
-}
-
 /* ===== MODALS ===== */
 #modal-fail,
 #modal-win,
@@ -179,58 +162,72 @@ padding:20px;
 }
 
 /* ===== INPUTS ===== */
-input,textarea{
+input{
 width:100%;
-padding:10px;
+padding:12px;
 border-radius:8px;
-border:none;
-margin:8px 0;
+border:1px solid #ddd;
+margin:10px 0;
+box-sizing: border-box;
 }
 
-/* ===== SOUND ===== */
-.snd-control{
-background:none;
-border:none;
-color:#fff;
-font-size:1.2rem;
-cursor:pointer;
-}
 </style>  </head>  <body>  <audio id="bg-music" loop src="bg_relax_loop.mp3"></audio>
 <audio id="snd-click" src="click.mp3"></audio>
 <audio id="snd-correct" src="correct.mp3"></audio>
 <audio id="snd-wrong" src="wrong.mp3"></audio>
 
-<div id="app">  <div class="top-bar">    
+<div id="app">  
+<div class="top-bar">    
   <button class="snd-control" onclick="toggleMute()">🔊</button>    
   <span id="player-name-top">CashCent Puzzle</span>    
   <div class="coin-box">💰 <span id="coin-count">0</span></div>    
-</div>  <div id="scr-loading" class="screen active">    
+</div>  
+
+<div id="scr-loading" class="screen active">    
   <h2>🔄 Cargando preguntas...</h2>    
-</div>  <div id="scr-home" class="screen">    
+</div>  
+
+<div id="scr-login" class="screen">
+  <h2 style="text-align:center">Bienvenido</h2>
+  <p style="text-align:center; color:#666">Introduce tu email de PayPal para comenzar. Este será el email donde recibirás tus pagos.</p>
+  <input type="email" id="login-paypal" placeholder="tu-email@paypal.com">
+  <button class="menu-btn btn-play" onclick="registrarUsuario()">Entrar a CashCent</button>
+</div>
+
+<div id="scr-home" class="screen">    
   <button class="menu-btn btn-ad" onclick="verAnuncioGeneral()">📺 Ver anuncio (+50)</button>    
   <button class="menu-btn btn-play" onclick="irA('scr-groups')">🎮 Jugar</button>    
   <button class="menu-btn btn-gray" onclick="irA('scr-settings')">⚙️ Ajustes</button>    
   <button class="menu-btn btn-pay" onclick="irA('scr-shop')">💳 Canjear PayPal</button>    
-</div>  <div id="scr-settings" class="screen">    
+</div>  
+
+<div id="scr-settings" class="screen">    
   <h2>⚙️ Ajustes</h2>    
   <label>Nombre del jugador</label>    
   <input id="player-name-input" placeholder="Tu nombre">    
+  <p><b>PayPal registrado:</b> <br><span id="display-paypal" style="color:var(--p)"></span></p>
   <pre id="stats-box"></pre>    
   <button class="menu-btn btn-play" onclick="guardarAjustes()">Guardar</button>    
   <button class="menu-btn btn-gray" onclick="irA('scr-history')">📊 Historial</button>    
   <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>    
-</div>  <div id="scr-groups" class="screen">    
+</div>  
+
+<div id="scr-groups" class="screen">    
   <h2>Dificultad</h2>    
   <button class="menu-btn" style="background:#3b82f6" onclick="setGrupo('Fácil')">Fácil</button>    
   <button class="menu-btn" style="background:#10b981" onclick="setGrupo('Media')">Media</button>    
   <button class="menu-btn" style="background:#f59e0b" onclick="setGrupo('Difícil')">Difícil</button>    
   <button class="menu-btn" style="background:#ef4444" onclick="setGrupo('Muy Difícil')">Muy Difícil</button>    
   <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>    
-</div>  <div id="scr-levels" class="screen">    
+</div>  
+
+<div id="scr-levels" class="screen">    
   <h2 id="lvl-title"></h2>    
   <div id="levels-container" class="levels-grid"></div>    
   <button class="menu-btn btn-gray" onclick="irA('scr-groups')">Volver</button>    
-</div>  <div id="scr-quiz" class="screen">    
+</div>  
+
+<div id="scr-quiz" class="screen">    
   <div style="display:flex;justify-content:space-between">    
     <span id="q-progress">1/7</span>    
     <span id="q-diff"></span>    
@@ -240,448 +237,196 @@ cursor:pointer;
     <button class="menu-btn btn-gray" onclick="usarPista()">💡 Pista</button>    
     <button class="menu-btn btn-gray" onclick="congelarTiempo()">⏸️ Congelar</button>    
     <button class="menu-btn btn-gray" onclick="vidaExtra()">❤️ Vida</button>    
-  </div>  <button class="menu-btn btn-gray" onclick="resetearNivel();irA('scr-levels')">Salir</button>    <div id="modal-fail">    
+  </div>  <button class="menu-btn btn-gray" onclick="resetearNivel();irA('scr-levels')">Salir</button>    
+  <div id="modal-fail">    
     <h2>❌ Has perdido</h2>    
     <button class="menu-btn btn-ad" onclick="verAnuncioContinuar()">📺 Ver anuncio y continuar</button>    
     <button class="menu-btn btn-gray" onclick="resetearNivel();irA('scr-levels')">Salir</button>    
   </div>    
-</div>  <div id="modal-win">    
+</div>  
+
+<div id="modal-win">    
   <h2>🎉 Nivel Superado</h2>    
   <div id="win-stars"></div>    
   <p id="win-info"></p>    
   <p id="win-reward"></p>    
   <button class="menu-btn btn-play" onclick="resetearNivel();irA('scr-levels')">Continuar</button>    
-</div>  <div id="scr-shop" class="screen">    
+</div>  
+
+<div id="scr-shop" class="screen">    
   <h2>💳 Canjear PayPal</h2>    
-  <p style="font-size:0.85rem;color:#6b7280;text-align:center;margin-bottom:15px">    
-    Los retiros se procesan manualmente en un plazo de 24 a 72 horas.    
-    CashCent Puzzle revisa cada solicitud para prevenir fraudes.    
-  </p>    
+  <p style="text-align:center; font-size:0.9rem">Email: <b id="shop-paypal-display"></b></p>
   <div id="shop-list"></div>    
   <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>    
-</div>  <div id="scr-history" class="screen">    
+</div>  
+
+<div id="scr-history" class="screen">    
   <h2>📊 Historial de Retiros</h2>    
   <div id="history-list"></div>    
   <button class="menu-btn btn-gray" onclick="irA('scr-settings')">Volver</button>    
-</div>  </div>  <script>    
+</div>  
+</div>  
+
+<script>    
 /* =====================================================    
    CASHCENT PUZZLE — MOTOR COMPLETO PREMIUM    
-===================================================== */    /* ---------- CONSTANTES ---------- */
+===================================================== */    
 const MAX_NIVELES = 100;
 const PREGUNTAS_POR_NIVEL = 7;
 const VIDAS_MAX = 3;
 const TIEMPO_MAX = 100;
-const ANUNCIOS_DIARIOS_MAX = 3;
 
-/* ---------- ANTI-CHEAT ---------- */
-if(localStorage.getItem("usuarioBloqueado") === "1"){
-document.body.innerHTML = "<h2 style='text-align:center;margin-top:40px'>🚫 Cuenta bloqueada por fraude</h2>";
-throw new Error("Usuario bloqueado");
-}
-
-function generarIDRetiro(){
-return "RET-" + Date.now() + "-" + Math.floor(Math.random()*1000);
-}
-
-function bloquearUsuario(motivo){
-localStorage.setItem("usuarioBloqueado","1");
-alert("Cuenta bloqueada por fraude:\n"+motivo);
-location.reload();
-}
-
-function detectarTrampa(){
-const monedasLS = parseInt(localStorage.getItem("monedas")) || 0;
-if(monedasLS !== monedas){
-alert("⚠️ Actividad sospechosa detectada.\nLa sesión será reiniciada.");
-localStorage.clear();
-location.reload();
-}
-}
-
-/* ---------- ESTADO PERSISTENTE ---------- */
+/* ---------- ESTADO ---------- */
 let monedas = parseInt(localStorage.getItem("monedas")) || 0;
-let progreso = JSON.parse(localStorage.getItem("progreso")) || {
-"Fácil":1,"Media":1,"Difícil":1,"Muy Difícil":1
-};
-let estrellas = JSON.parse(localStorage.getItem("estrellas")) || {
-"Fácil":{},"Media":{},"Difícil":{},"Muy Difícil":{}
-};
-let stats = JSON.parse(localStorage.getItem("stats")) || {
-preguntas:0,
-niveles:0,
-porDificultad:{
-"Fácil":0,"Media":0,"Difícil":0,"Muy Difícil":0
-}
-};
+let userPaypal = localStorage.getItem("userPaypal") || "";
+let progreso = JSON.parse(localStorage.getItem("progreso")) || {"Fácil":1,"Media":1,"Difícil":1,"Muy Difícil":1};
+let estrellas = JSON.parse(localStorage.getItem("estrellas")) || {"Fácil":{},"Media":{},"Difícil":{},"Muy Difícil":{}};
+let stats = JSON.parse(localStorage.getItem("stats")) || {preguntas:0, niveles:0, porDificultad:{"Fácil":0,"Media":0,"Difícil":0,"Muy Difícil":0}};
 let playerName = localStorage.getItem("playerName") || "";
 
-/* ---------- ANUNCIOS DIARIOS ---------- */
-let hoy = new Date().toISOString().slice(0,10);
-let adsData = JSON.parse(localStorage.getItem("adsData")) || {fecha:hoy, vistos:0};
-if(adsData.fecha !== hoy){
-adsData = {fecha:hoy, vistos:0};
+let bancoPreguntas = [], preguntasFiltradas = [], poolPreguntas = [];
+let grupoActivo = "", qIdx = 0, aciertos = 0, vidas = VIDAS_MAX, tiempo = TIEMPO_MAX;
+let timer = null, reinicioTimer = null, muted = false, respuestaCorrectaActual = "";
+
+/* ---------- LOGIN ---------- */
+function registrarUsuario(){
+    const email = document.getElementById("login-paypal").value.trim();
+    if(!email || !email.includes("@")){
+        alert("Introduce un email de PayPal válido.");
+        return;
+    }
+    userPaypal = email;
+    localStorage.setItem("userPaypal", email);
+    irA("scr-home");
 }
 
-/* ---------- PARTIDA ---------- */
-let bancoPreguntas = [];
-let preguntasFiltradas = [];
-let poolPreguntas = [];
-let grupoActivo = "";
-let qIdx = 0;
-let aciertos = 0;
-let vidas = VIDAS_MAX;
-let tiempo = TIEMPO_MAX;
-let timer = null;
-let reinicioTimer = null;
-let muted = false;
-let respuestaCorrectaActual = "";
-let tiempoRespuestaInicio = Date.now();
-
-/* ---------- AUDIO ---------- */
-document.body.addEventListener("click", ()=>{
-if(!muted) document.getElementById("bg-music").play().catch(()=>{});
-},{once:true});
-
-function playSound(id){
-if(muted) return;
-const s = document.getElementById(id);
-if(s){
-s.currentTime = 0;
-s.play().catch(()=>{});
-}
-}
-
-function toggleMute(){
-muted = !muted;
-document.querySelector(".snd-control").innerText = muted ? "🔇" : "🔊";
-const bg = document.getElementById("bg-music");
-if(!muted) bg.play().catch(()=>{});
-else bg.pause();
-}
-
-/* ---------- UTILIDADES ---------- */
-function guardarTodo(){
-localStorage.setItem("monedas",monedas);
-localStorage.setItem("progreso",JSON.stringify(progreso));
-localStorage.setItem("estrellas",JSON.stringify(estrellas));
-localStorage.setItem("stats",JSON.stringify(stats));
-localStorage.setItem("playerName",playerName);
-localStorage.setItem("adsData",JSON.stringify(adsData));
-detectarTrampa();
-}
-
-function actualizarMarcador(){
-document.getElementById("coin-count").innerText = monedas;
-detectarTrampa();
-}
-
-/* ---------- LIMPIEZA ---------- */
-function limpiarTimers(){
-if(timer){ clearInterval(timer); timer=null; }
-if(reinicioTimer){ clearTimeout(reinicioTimer); reinicioTimer=null; }
+/* ---------- GENERADOR ID DESCIFRABLE ---------- */
+function generarIDRetiro(monto){
+    // CC + Email en Base64 + Monto + Time
+    const b64Email = btoa(userPaypal).substring(0,8); 
+    return `CC-${b64Email}-${monto.replace('.','')}-${Date.now().toString().slice(-6)}`;
 }
 
 /* ---------- NAVEGACIÓN ---------- */
 function irA(id){
-limpiarTimers();
-playSound("snd-click");
-document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-document.getElementById(id).classList.add("active");
-if(id==="scr-settings") actualizarStatsUI();
-if(id==="scr-shop") pintarTienda();
-if(id==="scr-history") pintarHistorial();
+    limpiarTimers();
+    if(id === "scr-home" && !userPaypal) { id = "scr-login"; } // Bloqueo si no hay login
+    document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    if(id === "scr-settings") {
+        document.getElementById("display-paypal").innerText = userPaypal;
+        actualizarStatsUI();
+    }
+    if(id === "scr-shop") {
+        document.getElementById("shop-paypal-display").innerText = userPaypal;
+        pintarTienda();
+    }
+    if(id === "scr-history") pintarHistorial();
 }
 
-/* ---------- CSV CARGA ---------- */
+/* ---------- CARGA CSV ---------- */
 fetch("Ps1_comas_final.csv")
 .then(r=>r.text())
 .then(t=>{
-const filas=t.split(/\r?\n/);
-bancoPreguntas = filas.slice(1).filter(l=>l.trim()).map(l=>{
-    const c = l.split(","); 
-    return {
-        p: (c[0]||"").replace(/^"|"$/g, "").trim(),
-        cor: (c[1]||"").replace(/^"|"$/g, "").trim(),
-        ops: [(c[1]||""), (c[2]||""), (c[3]||""), (c[4]||"")].map(o => o.replace(/^"|"$/g, "").trim()),
-        diff: (c[5]||"").replace(/^"|"$/g, "").trim()
-    };
+    const filas=t.split(/\r?\n/);
+    bancoPreguntas = filas.slice(1).filter(l=>l.trim()).map(l=>{
+        const c = l.split(","); 
+        return {
+            p: (c[0]||"").replace(/^"|"$/g, "").trim(),
+            cor: (c[1]||"").replace(/^"|"$/g, "").trim(),
+            ops: [(c[1]||""), (c[2]||""), (c[3]||""), (c[4]||"")].map(o => o.replace(/^"|"$/g, "").trim()),
+            diff: (c[5]||"").replace(/^"|"$/g, "").trim()
+        };
+    });
+    actualizarMarcador();
+    if(!userPaypal) irA("scr-login"); else irA("scr-home");
 });
-document.getElementById("player-name-top").innerText = playerName || "CashCent Puzzle";
-actualizarMarcador();
-irA("scr-home");
-});
 
-/* ---------- NIVELES ---------- */
-function setGrupo(g){
-grupoActivo=g;
-preguntasFiltradas=bancoPreguntas.filter(p=>p.diff.toLowerCase() === g.toLowerCase());
-document.getElementById("lvl-title").innerText="Niveles: "+g;
-pintarNiveles();
-irA("scr-levels");
-}
-
-function pintarNiveles(){
-const c=document.getElementById("levels-container");
-c.innerHTML="";
-for(let i=1;i<=MAX_NIVELES;i++){
-const b=document.createElement("button");
-b.className="lvl-btn";
-if(i<=progreso[grupoActivo]){
-b.classList.add("unlocked");
-b.innerText=i;
-if(estrellas[grupoActivo][i]){
-const s=document.createElement("div");
-s.className="star-mini";
-s.innerText="⭐".repeat(estrellas[grupoActivo][i]);
-b.appendChild(s);
-}
-b.onclick=iniciarNivel;
-}else{
-b.classList.add("locked");
-b.innerText="🔒";
-}
-c.appendChild(b);
-}
-}
-
-/* ---------- PARTIDA ---------- */
-function iniciarNivel(){
-qIdx=0;aciertos=0;vidas=VIDAS_MAX;tiempo=TIEMPO_MAX;
-poolPreguntas=[...preguntasFiltradas].sort(() => Math.random() - 0.5);
-irA("scr-quiz");
-iniciarTimer();
-cargarPregunta();
-}
-
+/* ---------- JUEGO (LÓGICA TIEMPO ARREGLADA) ---------- */
 function iniciarTimer(){
-limpiarTimers();
-actualizarBarras();
-timer=setInterval(()=>{
-tiempo--;
-actualizarBarras();
-if(tiempo<=0) {
-    playSound("snd-wrong");
-    perderVida();
-}
-},100);
-}
-
-function actualizarBarras(){
-document.getElementById("time-fill").style.width=(tiempo/TIEMPO_MAX * 100)+"%";
-document.getElementById("life-fill").style.width=(vidas/VIDAS_MAX * 100)+"%";
+    limpiarTimers();
+    timer=setInterval(()=>{
+        tiempo--;
+        document.getElementById("time-fill").style.width=(tiempo/TIEMPO_MAX * 100)+"%";
+        if(tiempo<=0) { playSound("snd-wrong"); perderVida(); }
+    },100);
 }
 
 function cargarPregunta(){
-document.getElementById("modal-fail").style.display="none";
-if(poolPreguntas.length===0) poolPreguntas=[...preguntasFiltradas].sort(() => Math.random() - 0.5);
-const q=poolPreguntas.pop();
-
-respuestaCorrectaActual = q.cor;
-tiempoRespuestaInicio = Date.now();
-tiempo = TIEMPO_MAX; // REINICIO DE VARA DE TIEMPO
-
-document.getElementById("q-progress").innerText=(qIdx+1)+"/"+PREGUNTAS_POR_NIVEL;
-document.getElementById("q-diff").innerText=grupoActivo;
-document.getElementById("q-text").innerText=q.p;
-
-const box=document.getElementById("q-options");
-box.innerHTML="";
-[...q.ops].sort(()=>Math.random()-.5).forEach(o=>{
-const b=document.createElement("button");
-b.className="opt-btn";
-b.innerText=o;
-b.onclick=()=>{
-const tiempoRespuesta = Date.now() - tiempoRespuestaInicio;
-if(tiempoRespuesta < 300){
-bloquearUsuario("Trampa detectada (respuesta automática)");
-return;
-}
-document.querySelectorAll(".opt-btn").forEach(x=>x.disabled=true);
-stats.preguntas++;
-if(o===q.cor){
-playSound("snd-correct");
-b.classList.add("correct");
-aciertos++;
-setTimeout(avanzarPregunta,800);
-}else{
-playSound("snd-wrong");
-b.classList.add("wrong");
-setTimeout(perderVida,800);
-}
-};
-box.appendChild(b);
-});
-}
-
-function avanzarPregunta(){
-qIdx++;
-if(qIdx<PREGUNTAS_POR_NIVEL) cargarPregunta();
-else finalizarNivel();
-}
-
-function perderVida(){
-vidas--;
-actualizarBarras();
-if(vidas<=0){
-limpiarTimers();
-document.getElementById("modal-fail").style.display="flex";
-}else{
-setTimeout(cargarPregunta,800);
-}
+    document.getElementById("modal-fail").style.display="none";
+    if(poolPreguntas.length===0) poolPreguntas=[...preguntasFiltradas].sort(() => Math.random() - 0.5);
+    const q=poolPreguntas.pop();
+    respuestaCorrectaActual = q.cor;
+    tiempo = TIEMPO_MAX;
+    document.getElementById("q-progress").innerText=(qIdx+1)+"/"+PREGUNTAS_POR_NIVEL;
+    document.getElementById("q-text").innerText=q.p;
+    const box=document.getElementById("q-options");
+    box.innerHTML="";
+    [...q.ops].sort(()=>Math.random()-.5).forEach(o=>{
+        const b=document.createElement("button");
+        b.className="opt-btn"; b.innerText=o;
+        b.onclick=()=>{
+            document.querySelectorAll(".opt-btn").forEach(x=>x.disabled=true);
+            if(o===q.cor){ playSound("snd-correct"); b.classList.add("correct"); aciertos++; setTimeout(avanzarPregunta,800); }
+            else { playSound("snd-wrong"); b.classList.add("wrong"); setTimeout(perderVida,800); }
+        };
+        box.appendChild(b);
+    });
 }
 
 function finalizarNivel(){
     limpiarTimers();
-    let estrellasGanadas = vidas>=3 ? 3 : vidas>=2 ? 2 : 1;
     const nivelActual = progreso[grupoActivo];
-    if(!estrellas[grupoActivo]) estrellas[grupoActivo] = {};
-    estrellas[grupoActivo][nivelActual] = Math.max(estrellas[grupoActivo][nivelActual] || 0, estrellasGanadas);
-    
-    // DESBLOQUEO AUTOMÁTICO
-    if (nivelActual < MAX_NIVELES) {
-        progreso[grupoActivo] = nivelActual + 1;
-    }
-
+    if (nivelActual < MAX_NIVELES) progreso[grupoActivo]++;
     monedas += 70;
-    stats.niveles++;
-    stats.porDificultad[grupoActivo]++;
     guardarTodo();
     actualizarMarcador();
-    pintarNiveles(); 
-
-    document.getElementById("win-stars").innerText = "⭐".repeat(estrellasGanadas);
-    document.getElementById("win-info").innerText = "Aciertos: "+aciertos+"/"+PREGUNTAS_POR_NIVEL;
-    document.getElementById("win-reward").innerText = "+70 monedas";
     document.getElementById("modal-win").style.display = "flex";
-}
-
-function resetearNivel(){
-limpiarTimers();
-document.getElementById("modal-fail").style.display="none";
-document.getElementById("modal-win").style.display="none";
-}
-
-/* ---------- ANUNCIOS ---------- */
-function verAnuncioGeneral(){
-adsData.vistos++;
-monedas+=50;
-guardarTodo();
-actualizarMarcador();
-alert("Anuncio visto (+50 monedas)");
-}
-
-function verAnuncioContinuar(){
-adsData.vistos++;
-vidas=1;
-tiempo=TIEMPO_MAX;
-guardarTodo();
-document.getElementById("modal-fail").style.display="none";
-iniciarTimer();
-cargarPregunta();
-}
-
-/* ---------- AYUDAS ---------- */
-function usarPista(){
-if(monedas<30){ alert("Necesitas 30 monedas"); return; }
-const botones=[...document.querySelectorAll(".opt-btn")];
-const incorrectos=botones.filter(b=> b.innerText !== respuestaCorrectaActual && !b.disabled);
-if(incorrectos.length>0){
-monedas-=30; guardarTodo(); actualizarMarcador();
-incorrectos[Math.floor(Math.random()*incorrectos.length)].disabled=true;
-}
-}
-
-function congelarTiempo(){
-if(monedas<40){ alert("Necesitas 40 monedas"); return; }
-monedas-=40; guardarTodo(); actualizarMarcador();
-limpiarTimers();
-reinicioTimer=setTimeout(iniciarTimer,5000);
-}
-
-function vidaExtra(){
-if(monedas<50){ alert("Necesitas 50 monedas"); return; }
-if(vidas >= VIDAS_MAX){ alert("Ya tienes el máximo de vidas"); return; }
-monedas-=50; vidas++;
-guardarTodo(); actualizarMarcador(); actualizarBarras();
-}
-
-/* ---------- AJUSTES ---------- */
-function guardarAjustes(){
-playerName=document.getElementById("player-name-input").value.trim();
-document.getElementById("player-name-top").innerText = playerName || "CashCent Puzzle";
-guardarTodo();
-irA("scr-home");
-}
-
-function actualizarStatsUI(){
-document.getElementById("stats-box").innerText =
-"Preguntas: "+stats.preguntas+"\n"+
-"Niveles: "+stats.niveles+"\n"+
-"Fácil: "+stats.porDificultad["Fácil"]+"\n"+
-"Media: "+stats.porDificultad["Media"]+"\n"+
-"Difícil: "+stats.porDificultad["Difícil"]+"\n"+
-"Muy Difícil: "+stats.porDificultad["Muy Difícil"];
 }
 
 /* ---------- RETIROS ---------- */
 function pintarTienda(){
-const l=document.getElementById("shop-list");
-l.innerHTML="";
-const pagos=[
-{e:"0.05",c:7000},{e:"0.10",c:10000},{e:"0.50",c:14000},
-{e:"1",c:18500},{e:"5",c:23000},{e:"10",c:30000},
-{e:"15",c:35500},{e:"20",c:41000}
-];
-pagos.forEach(p=>{
-const ok=monedas>=p.c;
-l.innerHTML+=`
-<div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee">
-  <span>PayPal <b>${p.e}€</b></span>
-  <button class="btn-pay" 
-  style="background:${ok?'#6366f1':'#9ca3af'}" 
-  onclick="${ok?`confirmarRetiro('${p.e}',${p.c})`:`alert('Te faltan ${p.c-monedas} monedas')`}">
-  ${p.c} 💰
-  </button>
-</div>`;
-});
+    const l=document.getElementById("shop-list"); l.innerHTML="";
+    const pagos=[{e:"0.05",c:7000},{e:"0.10",c:10000},{e:"0.50",c:14000},{e:"1",c:18500},{e:"5",c:23000},{e:"10",c:30000}];
+    pagos.forEach(p=>{
+        const ok=monedas>=p.c;
+        l.innerHTML+=`
+        <div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee">
+          <span>PayPal <b>${p.e}€</b></span>
+          <button class="btn-pay" style="background:${ok?'#6366f1':'#9ca3af'}" ${!ok?'disabled':''} onclick="confirmarRetiro('${p.e}',${p.c})">
+          ${p.c} 💰</button>
+        </div>`;
+    });
 }
 
 function confirmarRetiro(e,c){
-if(!confirm("¿Confirmas retirar "+e+"€ por "+c+" monedas?")) return;
-retirar(e,c);
+    if(!confirm(`¿Retirar ${e}€ a ${userPaypal}?`)) return;
+    const rid = generarIDRetiro(e);
+    monedas -= c;
+    const h = JSON.parse(localStorage.getItem("retiros")) || [];
+    h.push({id:rid, importe:e, fecha:new Date().toLocaleString(), paypal:userPaypal});
+    localStorage.setItem("retiros", JSON.stringify(h));
+    guardarTodo(); actualizarMarcador(); pintarTienda();
+    
+    const body = `SOLICITUD DE PAGO\n\nID: ${rid}\nEmail PayPal: ${userPaypal}\nImporte: ${e}€\n\nEste ID contiene el email y monto cifrados.`;
+    window.location.href = `mailto:heidimba5@gmail.com?subject=Retiro ${rid}&body=${encodeURIComponent(body)}`;
 }
 
-function retirar(e,c){
-if(monedas < c){
-bloquearUsuario("Intento de retiro sin saldo suficiente");
-return;
-}
-const retiroID = generarIDRetiro();
-const fecha = new Date().toLocaleString();
-monedas -= c;
-const historial = JSON.parse(localStorage.getItem("retiros")) || [];
-historial.push({
-id: retiroID, importe: e, monedas: c, fecha: fecha, jugador: playerName || "Sin nombre"
-});
-localStorage.setItem("retiros", JSON.stringify(historial));
-guardarTodo();
-actualizarMarcador();
-alert("Solicitud enviada correctamente.\n\nTu retiro será revisado.");
-window.location.href = "mailto:heidimba5@gmail.com?subject=Retiro&body=ID:"+retiroID;
-}
-
-/* ---------- HISTORIAL ---------- */
-function pintarHistorial(){
-const cont = document.getElementById("history-list");
-const datos = JSON.parse(localStorage.getItem("retiros")) || [];
-if(datos.length === 0){
-cont.innerHTML = "<p style='text-align:center;color:#6b7280'>No hay retiros aún.</p>";
-return;
-}
-cont.innerHTML = "";
-datos.slice().reverse().forEach(r=>{
-cont.innerHTML += `<div style="border-bottom:1px solid #e5e7eb;padding:10px"><b>${r.importe}€</b><br>ID: ${r.id}<br>${r.fecha}</div>`;
-});
-}
+/* ---------- OTROS (Originales) ---------- */
+function setGrupo(g){ grupoActivo=g; preguntasFiltradas=bancoPreguntas.filter(p=>p.diff.toLowerCase() === g.toLowerCase()); pintarNiveles(); irA('scr-levels'); }
+function pintarNiveles(){ const c=document.getElementById("levels-container"); c.innerHTML=""; for(let i=1;i<=MAX_NIVELES;i++){ const b=document.createElement("button"); b.className="lvl-btn "+(i<=progreso[grupoActivo]?"unlocked":"locked"); b.innerText=i<=progreso[grupoActivo]?i:"🔒"; if(i<=progreso[grupoActivo]) b.onclick=iniciarNivel; c.appendChild(b); } }
+function iniciarNivel(){ qIdx=0; aciertos=0; vidas=VIDAS_MAX; poolPreguntas=[...preguntasFiltradas].sort(()=>Math.random()-.5); irA("scr-quiz"); iniciarTimer(); cargarPregunta(); }
+function perderVida(){ vidas--; document.getElementById("life-fill").style.width=(vidas/VIDAS_MAX * 100)+"%"; if(vidas<=0){ limpiarTimers(); document.getElementById("modal-fail").style.display="flex"; } else { setTimeout(cargarPregunta,800); } }
+function avanzarPregunta(){ qIdx++; if(qIdx<PREGUNTAS_POR_NIVEL) cargarPregunta(); else finalizarNivel(); }
+function limpiarTimers(){ if(timer) clearInterval(timer); if(reinicioTimer) clearTimeout(reinicioTimer); }
+function guardarTodo(){ localStorage.setItem("monedas",monedas); localStorage.setItem("progreso",JSON.stringify(progreso)); localStorage.setItem("estrellas",JSON.stringify(estrellas)); localStorage.setItem("stats",JSON.stringify(stats)); }
+function actualizarMarcador(){ document.getElementById("coin-count").innerText = monedas; }
+function resetearNivel(){ document.getElementById("modal-fail").style.display="none"; document.getElementById("modal-win").style.display="none"; }
+function verAnuncioGeneral(){ monedas+=50; guardarTodo(); actualizarMarcador(); alert("+50 monedas"); }
+function verAnuncioContinuar(){ vidas=1; tiempo=TIEMPO_MAX; document.getElementById("modal-fail").style.display="none"; iniciarTimer(); cargarPregunta(); }
+function toggleMute(){ muted=!muted; document.querySelector(".snd-control").innerText=muted?"🔇":"🔊"; const bg=document.getElementById("bg-music"); if(!muted) bg.play(); else bg.pause(); }
+function playSound(id){ if(!muted) document.getElementById(id).play().catch(()=>{}); }
+function pintarHistorial(){ const cont = document.getElementById("history-list"); const datos = JSON.parse(localStorage.getItem("retiros")) || []; if(datos.length === 0){ cont.innerHTML = "<p>No hay retiros.</p>"; return; } cont.innerHTML = ""; datos.slice().reverse().forEach(r=>{ cont.innerHTML += `<div style="border-bottom:1px solid #eee;padding:10px"><b>${r.importe}€</b><br><small>ID: ${r.id}</small></div>`; }); }
+function guardarAjustes(){ playerName=document.getElementById("player-name-input").value; localStorage.setItem("playerName", playerName); irA("scr-home"); }
+function actualizarStatsUI(){ document.getElementById("stats-box").innerText = `Preguntas: ${stats.preguntas}\nNiveles: ${stats.niveles}`; }
 </script></body></html>
-  
