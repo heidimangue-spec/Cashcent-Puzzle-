@@ -3,57 +3,189 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Master Pro</title>
+<title>CashCent Puzzle</title>
 
 <style>
+/* ================= VARIABLES ================= */
 :root{
- --p:#2563eb; --s:#10b981; --bg:#f3f4f6;
- --danger:#ef4444; --warn:#f59e0b;
+ --p:#2563eb;
+ --s:#10b981;
+ --bg:#f3f4f6;
+ --danger:#ef4444;
+ --warn:#f59e0b;
 }
-body{margin:0;background:var(--bg);font-family:sans-serif;display:flex;justify-content:center}
-#app{width:100%;max-width:450px;min-height:100vh;background:#fff;box-shadow:0 0 20px rgba(0,0,0,.1);display:flex;flex-direction:column;position:relative}
-@keyframes flashFail{0%{background:#fff}50%{background:#fee2e2}100%{background:#fff}}
-.flash-fail{animation:flashFail .5s ease}
-.top-bar{background:var(--p);color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center;font-weight:bold}
-.coin-box{background:rgba(0,0,0,.25);padding:5px 12px;border-radius:20px}
-.screen{display:none;flex-grow:1;padding:20px}
-.active{display:flex;flex-direction:column;justify-content:center}
-.menu-btn{width:100%;padding:15px;margin:10px 0;border:none;border-radius:12px;font-size:1rem;font-weight:bold;color:#fff;cursor:pointer}
-.btn-play{background:var(--s)} .btn-ad{background:var(--warn)}
-.btn-pay{background:#6366f1} .btn-gray{background:#6b7280}
-.levels-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-.lvl-btn{aspect-ratio:1;border:none;border-radius:10px;font-weight:bold;cursor:pointer}
-.opt-btn{width:100%;padding:15px;margin:8px 0;border-radius:10px;border:2px solid #e5e7eb;font-weight:bold;cursor:pointer}
-.bar{height:8px;border-radius:10px;background:#e5e7eb;margin:8px 0;overflow:hidden}
+
+/* ================= BASE ================= */
+body{
+ margin:0;
+ background:var(--bg);
+ font-family:sans-serif;
+ display:flex;
+ justify-content:center;
+}
+#app{
+ width:100%;
+ max-width:450px;
+ min-height:100vh;
+ background:#fff;
+ box-shadow:0 0 20px rgba(0,0,0,.1);
+ display:flex;
+ flex-direction:column;
+ position:relative;
+}
+
+/* ================= TOP BAR ================= */
+.top-bar{
+ background:var(--p);
+ color:#fff;
+ padding:15px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ font-weight:bold;
+}
+.coin-box{
+ background:rgba(0,0,0,.25);
+ padding:5px 12px;
+ border-radius:20px;
+}
+
+/* ================= SCREENS ================= */
+.screen{
+ display:none;
+ flex-grow:1;
+ padding:20px;
+}
+.active{
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+}
+
+/* ================= BUTTONS ================= */
+.menu-btn{
+ width:100%;
+ padding:15px;
+ margin:10px 0;
+ border:none;
+ border-radius:12px;
+ font-size:1rem;
+ font-weight:bold;
+ color:#fff;
+ cursor:pointer;
+}
+.btn-play{background:var(--s)}
+.btn-ad{background:var(--warn)}
+.btn-pay{background:#6366f1}
+.btn-gray{background:#6b7280}
+
+/* ================= LEVELS ================= */
+.levels-grid{
+ display:grid;
+ grid-template-columns:repeat(5,1fr);
+ gap:10px;
+ margin-top:15px;
+}
+.lvl-btn{
+ aspect-ratio:1;
+ border:none;
+ border-radius:10px;
+ font-weight:bold;
+ cursor:pointer;
+}
+
+/* ================= QUIZ ================= */
+.opt-btn{
+ width:100%;
+ padding:15px;
+ margin:8px 0;
+ border-radius:10px;
+ border:2px solid #e5e7eb;
+ font-weight:bold;
+ cursor:pointer;
+ transition:.2s;
+}
+
+/* ================= BARS ================= */
+.bar{
+ height:8px;
+ border-radius:10px;
+ background:#e5e7eb;
+ margin:8px 0;
+ overflow:hidden;
+}
 #time-fill{height:100%;background:var(--warn)}
 #life-fill{height:100%;background:var(--danger)}
-#modal-fail,#ad-overlay,#help-shop{position:absolute;inset:0;background:rgba(0,0,0,.9);color:#fff;display:none;z-index:100;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px}
-.help-btn{background:#fff;color:#000;border:none;border-radius:10px;padding:10px;margin:5px 0;width:100%;font-weight:bold;cursor:pointer}
-.snd-control{background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer}
+
+/* ================= MODALS ================= */
+#modal-fail,
+#ad-overlay,
+#help-shop,
+#modal-win{
+ position:absolute;
+ inset:0;
+ background:rgba(0,0,0,.9);
+ color:#fff;
+ display:none;
+ z-index:100;
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+ text-align:center;
+ padding:20px;
+}
+
+#modal-win{
+ z-index:200;
+}
+
+.help-btn{
+ background:#fff;
+ color:#000;
+ border:none;
+ border-radius:10px;
+ padding:10px;
+ margin:5px 0;
+ width:100%;
+ font-weight:bold;
+ cursor:pointer;
+}
+
+.snd-control{
+ background:none;
+ border:none;
+ color:#fff;
+ font-size:1.2rem;
+ cursor:pointer;
+}
 </style>
 </head>
 
 <body>
 
-<audio id="bg-music" loop src="game-music-loop-6-144641.mp3"></audio>
-<audio id="snd-click" src="clic.mp3"></audio>
-<audio id="snd-correct" src="ganar.mp3"></audio>
-<audio id="snd-wrong" src="perder.mp3"></audio>
+<!-- ================= AUDIO ================= -->
+<audio id="bg-music" loop src="bg_relax_loop.mp3"></audio>
+<audio id="snd-click" src="click.mp3"></audio>
+<audio id="snd-correct" src="correct.mp3"></audio>
+<audio id="snd-wrong" src="wrong.mp3"></audio>
 
 <div id="app">
 
+<!-- ================= TOP BAR ================= -->
 <div class="top-bar">
 <button class="snd-control" onclick="toggleMute()">🔊</button>
-<span>QUIZ MASTER PRO</span>
+<span>CASHCENT PUZZLE</span>
 <div class="coin-box">💰 <span id="coin-count">0</span></div>
 </div>
 
+<!-- ================= HOME ================= -->
 <div id="scr-home" class="screen active">
 <button class="menu-btn btn-ad" onclick="verAnuncioGeneral()">📺 Ver anuncio (+50)</button>
 <button class="menu-btn btn-play" onclick="irA('scr-groups')">🎮 Jugar</button>
 <button class="menu-btn btn-pay" onclick="irA('scr-shop')">💳 Canjear PayPal</button>
 </div>
 
+<!-- ================= DIFICULTAD ================= -->
 <div id="scr-groups" class="screen">
 <h2 style="text-align:center">Dificultad</h2>
 <button class="menu-btn" style="background:#3b82f6" onclick="setGrupo('Fácil')">Fácil</button>
@@ -63,20 +195,26 @@ body{margin:0;background:var(--bg);font-family:sans-serif;display:flex;justify-c
 <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
 </div>
 
+<!-- ================= LEVELS ================= -->
 <div id="scr-levels" class="screen">
 <h2 id="lvl-title" style="text-align:center"></h2>
 <div id="levels-container" class="levels-grid"></div>
 <button class="menu-btn btn-gray" onclick="irA('scr-groups')">Volver</button>
 </div>
 
+<!-- ================= QUIZ ================= -->
 <div id="scr-quiz" class="screen">
 <div style="display:flex;justify-content:space-between">
-<span id="q-progress"></span><span id="q-diff"></span>
+<span id="q-progress"></span>
+<span id="q-diff"></span>
 </div>
+
 <div class="bar"><div id="time-fill"></div></div>
 <div class="bar"><div id="life-fill"></div></div>
+
 <h3 id="q-text" style="min-height:60px;text-align:center"></h3>
 <div id="q-options"></div>
+
 <button class="menu-btn btn-gray" onclick="abrirTiendaAyudas()">🛒 Ayudas</button>
 
 <div id="modal-fail">
@@ -86,24 +224,36 @@ body{margin:0;background:var(--bg);font-family:sans-serif;display:flex;justify-c
 </div>
 </div>
 
+<!-- ================= HELP SHOP ================= -->
 <div id="help-shop">
 <h2>Ayudas</h2>
-<button class="help-btn" onclick="ayudaVida()">❤️ Vida (+35 / 📺)</button>
-<button class="help-btn" onclick="ayudaTiempo()">⏱️ Tiempo (+5s / 📺)</button>
-<button class="help-btn" onclick="ayudaPista()">🧠 Pista (25 / 📺)</button>
+<button class="help-btn" onclick="ayudaVida()">❤️ Vida (35)</button>
+<button class="help-btn" onclick="ayudaTiempo()">⏱️ Tiempo (40)</button>
+<button class="help-btn" onclick="ayudaPista()">🧠 Pista (25)</button>
 <button class="menu-btn btn-gray" onclick="cerrarTiendaAyudas()">Cerrar</button>
 </div>
 
+<!-- ================= PAYPAL SHOP ================= -->
 <div id="scr-shop" class="screen">
 <h2>Tienda PayPal</h2>
 <div id="shop-list"></div>
 <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
 </div>
 
+<!-- ================= AD ================= -->
 <div id="ad-overlay">
 <h2>Publicidad</h2>
 <p>📺 Anuncio</p>
 <button class="menu-btn btn-gray" onclick="cerrarAd()">Continuar</button>
+</div>
+
+<!-- ================= WIN SCREEN ================= -->
+<div id="modal-win">
+<h2>🎉 ¡Nivel Superado!</h2>
+<div id="win-stars" style="font-size:2.5rem;margin:15px 0;"></div>
+<p id="win-info"></p>
+<p id="win-reward" style="font-size:1.3rem;font-weight:bold;"></p>
+<button class="menu-btn btn-play" onclick="cerrarVictoria()">Continuar</button>
 </div>
 
 </div>
@@ -118,14 +268,14 @@ function playSound(id){
 }
 function iniciarMusica(){
  const bg=document.getElementById("bg-music");
- if(!bg.paused && !bg.ended) return;
- bg.volume=0.5;
- bg.play().catch(()=>{});
+ if(!bg.paused) return;
+ bg.volume=0.4;
+ bg.play().catch(()=>{})
 }
 function toggleMute(){
  isMuted=!isMuted;
  const bg=document.getElementById("bg-music");
- isMuted?bg.pause():bg.play().catch(()=>{});
+ isMuted?bg.pause():bg.play().catch(()=>{})
 }
 
 /* ================= NAV ================= */
@@ -137,30 +287,34 @@ function irA(id){
  if(id==="scr-shop") pintarTienda();
 }
 
-/* ================= ESTADO ================= */
+/* ================= STATE ================= */
 let monedas=parseInt(localStorage.getItem("monedas"))||0;
 let progreso=JSON.parse(localStorage.getItem("progreso"))||{"Fácil":1,"Media":1,"Difícil":1,"Muy Difícil":1};
-let grupoActivo="",qIdx=0,aciertos=0,vidas=3,vidasMax=3;
-let tiempo=10,timer=null,preguntasTotalesRespondidas=0;
-let preguntas=[],filtradas=[],pool=[],respaldo=[],respuestaCorrectaActual="";
-
-/* ================= PAYPAL ================= */
-const premiosPayPal=[
- {euros:"0.05",monedas:7000},{euros:"0.10",monedas:10000},
- {euros:"0.50",monedas:14000},{euros:"1",monedas:18500},
- {euros:"5",monedas:23000},{euros:"10",monedas:30000},
- {euros:"15",monedas:35500},{euros:"20",monedas:41000}
-];
+let grupoActivo="",qIdx=0,aciertos=0;
+let vidas=3,vidasMax=3;
+let tiempo=10,timer=null;
+let preguntas=[],filtradas=[],pool=[],respaldo=[];
+let respuestaCorrectaActual="";
+let preguntasTotalesRespondidas=0;
+let estrellasGanadas=0;
+let recompensaGanada=0;
 
 /* ================= DATA ================= */
-fetch("Ps1_comas_final.csv").then(r=>r.text()).then(t=>{
+fetch("Ps1_comas_final.csv")
+.then(r=>r.text())
+.then(t=>{
  preguntas=t.split("\n").slice(1).filter(x=>x.trim()).map(l=>{
   const c=l.split(",");
-  return{p:c[0],cor:c[1],ops:[c[1],c[2],c[3],c[4]],diff:c[5].trim()};
+  return{
+   p:c[0],
+   cor:c[1],
+   ops:[c[1],c[2],c[3],c[4]],
+   diff:c[5].trim()
+  };
  });
 });
 
-/* ================= GAME ================= */
+/* ================= GAME FLOW ================= */
 function setGrupo(g){
  grupoActivo=g;
  filtradas=preguntas.filter(p=>p.diff===g);
@@ -168,122 +322,257 @@ function setGrupo(g){
  pintarNiveles();
  irA("scr-levels");
 }
+
 function pintarNiveles(){
- const c=document.getElementById("levels-container");c.innerHTML="";
+ const c=document.getElementById("levels-container");
+ c.innerHTML="";
  document.getElementById("lvl-title").innerText="Niveles "+grupoActivo;
  for(let i=1;i<=100;i++){
-  const b=document.createElement("button");b.className="lvl-btn";
+  const b=document.createElement("button");
+  b.className="lvl-btn";
   if(i<=progreso[grupoActivo]){
-   b.innerText=i;b.style.background="#3b82f6";b.style.color="#fff";b.onclick=iniciarNivel;
-  }else{b.innerText="🔒";b.style.background="#ddd";}
+   b.innerText=i;
+   b.style.background="#3b82f6";
+   b.style.color="#fff";
+   b.onclick=iniciarNivel;
+  }else{
+   b.innerText="🔒";
+   b.style.background="#ddd";
+  }
   c.appendChild(b);
  }
 }
+
 function iniciarNivel(){
  qIdx=0;aciertos=0;vidas=3;
  pool=[...respaldo];
- irA("scr-quiz");actualizarVida();cargarPregunta();
+ irA("scr-quiz");
+ actualizarVida();
+ cargarPregunta();
 }
+
 function iniciarTimer(){
- clearInterval(timer);tiempo=10;
+ clearInterval(timer);
+ tiempo=10;
  document.getElementById("time-fill").style.width="100%";
  timer=setInterval(()=>{
   tiempo-=0.1;
   document.getElementById("time-fill").style.width=(tiempo/10*100)+"%";
-  if(tiempo<=0){clearInterval(timer);playSound("snd-wrong");mostrarCorrecta();setTimeout(()=>gestionarError(),1000);}
+  if(tiempo<=0){
+   clearInterval(timer);
+   playSound("snd-wrong");
+   mostrarCorrecta();
+   setTimeout(()=>gestionarError(),1000);
+  }
  },100);
 }
+
 function cargarPregunta(){
  if(pool.length===0) pool=[...respaldo];
  iniciarTimer();
  const q=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
  respuestaCorrectaActual=q.cor;
+
  document.getElementById("q-progress").innerText=(qIdx+1)+"/7";
  document.getElementById("q-diff").innerText=grupoActivo;
  document.getElementById("q-text").innerText=q.p;
- const box=document.getElementById("q-options");box.innerHTML="";
+
+ const box=document.getElementById("q-options");
+ box.innerHTML="";
+
  q.ops.sort(()=>Math.random()-.5).forEach(o=>{
   const b=document.createElement("button");
-  b.className="opt-btn";b.innerText=o;b.dataset.correcta=(o===respuestaCorrectaActual);
+  b.className="opt-btn";
+  b.innerText=o;
+  b.dataset.correcta=(o===respuestaCorrectaActual);
+
   b.onclick=()=>{
    clearInterval(timer);
    document.querySelectorAll(".opt-btn").forEach(x=>x.disabled=true);
+
    if(o===respuestaCorrectaActual){
-    playSound("snd-correct");b.style.background="var(--s)";
-    avanzarPregunta();
+    playSound("snd-correct");
+    b.style.background="var(--s)";
+    setTimeout(()=>avanzarPregunta(),700);
    }else{
-    playSound("snd-wrong");b.style.background="var(--danger)";
-    mostrarCorrecta();setTimeout(()=>gestionarError(),1000);
+    playSound("snd-wrong");
+    b.style.background="var(--danger)";
+    mostrarCorrecta();
+    setTimeout(()=>gestionarError(),1000);
    }
   };
   box.appendChild(b);
  });
 }
+
 function mostrarCorrecta(){
  document.querySelectorAll(".opt-btn").forEach(b=>{
-  if(b.dataset.correcta==="true") b.style.background="var(--s)";
+  if(b.dataset.correcta==="true"){
+   b.style.background="var(--s)";
+  }
  });
 }
+
 function avanzarPregunta(){
- aciertos++;qIdx++;preguntasTotalesRespondidas++;
- comprobarAnuncio(()=>{qIdx<7?cargarPregunta():finalizar();});
+ aciertos++;
+ qIdx++;
+ preguntasTotalesRespondidas++;
+ comprobarAnuncio(()=>{
+  qIdx<7 ? cargarPregunta() : finalizar();
+ });
 }
+
 function gestionarError(){
  preguntasTotalesRespondidas++;
- comprobarAnuncio(()=>{perderVida();});
+ comprobarAnuncio(()=>{
+  perderVida();
+ });
 }
+
 function comprobarAnuncio(cb){
- if(preguntasTotalesRespondidas%5===0) verAd(cb);
- else cb();
+ if(preguntasTotalesRespondidas%5===0){
+  verAd(cb);
+ }else{
+  cb();
+ }
 }
+
 function perderVida(){
- vidas--;actualizarVida();
- if(vidas<=0) document.getElementById("modal-fail").style.display="flex";
- else cargarPregunta();
+ vidas--;
+ actualizarVida();
+ if(vidas<=0){
+  document.getElementById("modal-fail").style.display="flex";
+ }else{
+  cargarPregunta();
+ }
 }
+
 function finalizar(){
- if(aciertos>=5){monedas+=70;progreso[grupoActivo]++;localStorage.setItem("progreso",JSON.stringify(progreso));}
- guardarMonedas();irA("scr-levels");
+ if(aciertos<5){
+  irA("scr-levels");
+  return;
+ }
+
+ if(vidas>=3) estrellasGanadas=3;
+ else if(vidas===2) estrellasGanadas=2;
+ else if(vidas===1) estrellasGanadas=1;
+ else estrellasGanadas=0;
+
+ recompensaGanada=70;
+ monedas+=recompensaGanada;
+ progreso[grupoActivo]++;
+ localStorage.setItem("progreso",JSON.stringify(progreso));
+ guardarMonedas();
+ mostrarVictoria();
+}
+
+/* ================= WIN SCREEN ================= */
+function mostrarVictoria(){
+ document.getElementById("win-stars").innerText="⭐".repeat(estrellasGanadas);
+ document.getElementById("win-info").innerText=`Aciertos: ${aciertos}/7 · ${grupoActivo}`;
+ document.getElementById("win-reward").innerText=`+${recompensaGanada} 💰 monedas`;
+ document.getElementById("modal-win").style.display="flex";
+}
+
+function cerrarVictoria(){
+ document.getElementById("modal-win").style.display="none";
+ irA("scr-levels");
 }
 
 /* ================= ADS ================= */
 function verAd(cb){
  document.getElementById("ad-overlay").style.display="flex";
- setTimeout(()=>{document.getElementById("ad-overlay").style.display="none";if(cb)cb();},800);
+ setTimeout(()=>{
+  document.getElementById("ad-overlay").style.display="none";
+  if(cb) cb();
+ },800);
 }
-function verAnuncioGeneral(){verAd(()=>{monedas+=50;guardarMonedas();});}
+function verAnuncioGeneral(){
+ playSound("snd-click");
+ verAd(()=>{monedas+=50;guardarMonedas();});
+}
 function verAnuncioContinuar(){
- verAd(()=>{document.getElementById("modal-fail").style.display="none";vidas=1;actualizarVida();cargarPregunta();});
+ playSound("snd-click");
+ verAd(()=>{
+  document.getElementById("modal-fail").style.display="none";
+  vidas=1;
+  actualizarVida();
+  cargarPregunta();
+ });
 }
-function cerrarAd(){document.getElementById("ad-overlay").style.display="none";}
+function cerrarAd(){
+ document.getElementById("ad-overlay").style.display="none";
+}
 
-/* ================= AYUDAS ================= */
-function abrirTiendaAyudas(){document.getElementById("help-shop").style.display="flex";}
-function cerrarTiendaAyudas(){document.getElementById("help-shop").style.display="none";}
-function ayudaVida(){if(monedas>=35){monedas-=35;vidas++;guardarMonedas();actualizarVida();}}
-function ayudaTiempo(){if(monedas>=40){monedas-=40;tiempo+=5;guardarMonedas();}}
+/* ================= HELP SHOP ================= */
+function abrirTiendaAyudas(){
+ playSound("snd-click");
+ document.getElementById("help-shop").style.display="flex";
+}
+function cerrarTiendaAyudas(){
+ playSound("snd-click");
+ document.getElementById("help-shop").style.display="none";
+}
+function ayudaVida(){
+ if(monedas>=35){
+  monedas-=35;
+  vidas++;
+  guardarMonedas();
+  actualizarVida();
+ }
+}
+function ayudaTiempo(){
+ if(monedas>=40){
+  monedas-=40;
+  tiempo+=5;
+  guardarMonedas();
+ }
+}
 function ayudaPista(){
- const i=[...document.querySelectorAll(".opt-btn")].filter(b=>b.dataset.correcta==="false"&&b.style.display!=="none");
- if(i.length>1)i.slice(0,2).forEach(b=>b.style.display="none");
+ if(monedas<25){
+  alert("No tienes suficientes monedas");
+  return;
+ }
+ const incorrectas=[...document.querySelectorAll(".opt-btn")]
+  .filter(b=>b.dataset.correcta==="false" && b.style.display!=="none");
+ if(incorrectas.length<=1) return;
+ monedas-=25;
+ guardarMonedas();
+ incorrectas.slice(0,2).forEach(b=>b.style.display="none");
 }
 
 /* ================= PAYPAL ================= */
+const premiosPayPal=[
+ {euros:"0.05",monedas:7000},
+ {euros:"0.10",monedas:10000},
+ {euros:"0.50",monedas:14000},
+ {euros:"1",monedas:18500},
+ {euros:"5",monedas:23000},
+ {euros:"10",monedas:30000},
+ {euros:"15",monedas:35500},
+ {euros:"20",monedas:41000}
+];
+
 function pintarTienda(){
- const l=document.getElementById("shop-list");l.innerHTML="";
+ const l=document.getElementById("shop-list");
+ l.innerHTML="";
  premiosPayPal.forEach(p=>{
   const ok=monedas>=p.monedas;
   const b=document.createElement("button");
   b.className="menu-btn btn-pay";
   b.innerText=`${p.euros} € — ${p.monedas} 💰`;
-  b.disabled=!ok;b.style.opacity=ok?1:.4;
+  b.disabled=!ok;
+  b.style.opacity=ok?1:.4;
   b.onclick=()=>retirar(p);
   l.appendChild(b);
  });
 }
+
 function retirar(p){
- if(monedas<p.monedas)return;
- monedas-=p.monedas;guardarMonedas();
- window.location.href=`mailto:heidimba5@gmail.com?subject=Solicitud Retiro Quiz Master Pro&body=Monto:${p.euros}€`;
+ if(monedas<p.monedas) return;
+ monedas-=p.monedas;
+ guardarMonedas();
+ window.location.href=`mailto:heidimba5@gmail.com?subject=Solicitud Retiro CashCent Puzzle&body=Monto:${p.euros}€`;
  alert("Solicitud enviada");
 }
 
@@ -295,7 +584,8 @@ function guardarMonedas(){
 function actualizarVida(){
  document.getElementById("life-fill").style.width=(vidas/vidasMax*100)+"%";
 }
-guardarMonedas();actualizarVida();
+guardarMonedas();
+actualizarVida();
 </script>
 
 </body>
