@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Master Pro Final</title>
+    <title>Quiz Master Final</title>
     <style>
         :root { --p-color: #2563eb; --s-color: #10b981; --bg: #f3f4f6; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
@@ -12,11 +12,6 @@
         .coin-box { background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; }
         .screen { padding: 20px; display: none; }
         .active { display: block; }
-        
-        /* BOTONES DE INICIO CENTRADOS */
-        #scr-home { display: none; flex-direction: column; justify-content: center; min-height: 80vh; }
-        #scr-home.active { display: flex; }
-
         .menu-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; }
         .btn-play { background: var(--s-color); }
         .btn-ad { background: #f59e0b; }
@@ -27,23 +22,20 @@
         .opt-btn { background: white; border: 2px solid #e5e7eb; width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; font-weight: bold; cursor: pointer; color: #333; }
         #modal-fail { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; }
         
-        #retiro-form { display: none; background: #f9fafb; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid #ddd; }
-        #retiro-form input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
-        
-        /* BOTÓN DE SONIDO */
-        .snd-toggle { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+        /* Botón de sonido */
+        .snd-control { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0 10px; }
     </style>
 </head>
 <body>
 
-<audio id="bg-music" loop src="https://assets.mixkit.co/music/preview/mixkit-soft-low-fidget-433.mp3"></audio>
+<audio id="bg-music" loop src="game-music-loop-6-144641.mp3"></audio>
 <audio id="snd-click" src="clic.mp3"></audio>
-<audio id="snd-win" src="ganar.mp3"></audio>
-<audio id="snd-lose" src="perder.mp3"></audio>
+<audio id="snd-correct" src="ganar.mp3"></audio>
+<audio id="snd-wrong" src="perder.mp3"></audio>
 
 <div id="app">
     <div class="top-bar">
-        <button class="snd-toggle" onclick="toggleAudio()">🔊</button>
+        <button class="snd-control" onclick="toggleMute()" id="mute-btn">🔊</button>
         <span>QUIZ MASTER PRO</span>
         <div class="coin-box">💰 <span id="coin-count">0</span></div>
     </div>
@@ -88,88 +80,124 @@
     <div id="scr-shop" class="screen">
         <h2>Tienda PayPal</h2>
         <div id="shop-list"></div>
-        <div id="retiro-form">
-            <h3>💸 Solicitar Pago</h3>
-            <p id="pago-detalle"></p>
-            <input type="email" id="paypal-mail" placeholder="Tu correo de PayPal">
-            <button class="menu-btn btn-pay" onclick="enviarSolicitud()">Confirmar Retiro</button>
-        </div>
         <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
     </div>
 </div>
 
 <script>
-    // IDs CONFIGURADOS 📺
+    // 🟢 Configuración IDs de AdMob
     const ID_INTERSTICIAL = "ca-app-pub-6417146963108410/9028736728";
-    const ID_BONIFICADO = "ca-app-pub-6417146963108410/4448146271";
+    const ID_RECOMPENSADO = "ca-app-pub-6417146963108410/4448146271";
     const ID_INTER_BONIF = "ca-app-pub-6417146963108410/6814686673";
 
     let monedas = parseInt(localStorage.getItem('monedas')) || 0;
     let progreso = JSON.parse(localStorage.getItem('progreso')) || {"Fácil": 1, "Media": 1, "Difícil": 1, "Muy Difícil": 1};
-    let grupoActivo = "", qIdx = 0, aciertos = 0, preguntasFiltradas = [], qGlobalCount = 0;
-    let bancoPreguntas = [], montoSeleccionado = "", audioMuted = false;
+    let grupoActivo = "", qIdx = 0, aciertos = 0, preguntasFiltradas = [], totalPreguntasRespondidas = 0;
+    let bancoPreguntas = [], isMuted = false;
 
     actualizarMarcador();
 
-    function guardarTodo() {
-        localStorage.setItem('monedas', monedas);
-        localStorage.setItem('progreso', JSON.stringify(progreso));
+    // Gestión de Sonidos
+    function playSound(id) {
+        if (!isMuted) {
+            const s = document.getElementById(id);
+            if(s) { s.currentTime = 0; s.play().catch(()=>{}); }
+        }
     }
 
-    function sonar(id) {
-        if(audioMuted) return;
-        let s = document.getElementById(id);
-        if(s) { s.currentTime = 0; s.play().catch(()=>{}); }
-    }
-
-    function toggleAudio() {
-        audioMuted = !audioMuted;
+    function toggleMute() {
+        isMuted = !isMuted;
         const bg = document.getElementById('bg-music');
-        const btn = document.querySelector('.snd-toggle');
-        if(audioMuted) { bg.pause(); btn.innerText = "📁"; } 
-        else { bg.play(); btn.innerText = "🔊"; }
+        const btn = document.getElementById('mute-btn');
+        if (isMuted) {
+            bg.pause();
+            btn.innerText = "📁";
+        } else {
+            bg.play().catch(()=>{});
+            btn.innerText = "🔊";
+        }
     }
 
-    // CARGAR CSV
+    // Cargar CSV
     fetch('Ps1_comas_final.csv')
         .then(res => res.text())
         .then(data => {
             const filas = data.split('\n').slice(1);
-            bancoPreguntas = filas.map(f => {
+            bancoPreguntas = filas.filter(f => f.trim() !== "").map(f => {
                 const c = f.split(',');
-                if(c.length < 6) return null;
                 return { p: c[0], cor: c[1], ops: [c[1], c[2], c[3], c[4]], diff: c[5].trim() };
-            }).filter(p => p !== null);
+            });
         });
 
-    function irA(id) {
-        sonar('snd-click');
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        if(id === 'scr-shop') { document.getElementById('retiro-form').style.display = 'none'; pintarTienda(); }
-        // Iniciar música suave al primer movimiento
-        document.getElementById('bg-music').play().catch(()=>{});
+    function guardarDatos() {
+        localStorage.setItem('monedas', monedas);
+        localStorage.setItem('progreso', JSON.stringify(progreso));
     }
 
-    // ANUNCIOS 📺
+    // 🟢 Comunicación con Niotron para Anuncios
     function solicitarAnuncioBonificado() {
-        if (window.AppInventor) { window.AppInventor.setWebViewString("AD_REWARD|" + ID_BONIFICADO); }
-        else { alert("Simulando Anuncio Bonificado..."); darRecompensa(50); }
-    }
-
-    function solicitarAnuncioContinuar() {
-        if (window.AppInventor) { window.AppInventor.setWebViewString("AD_INTER_BONIF|" + ID_INTER_BONIF); }
-        else { continuarConAnuncio(); }
-    }
-
-    function checkIntersticial() {
-        qGlobalCount++;
-        if(qGlobalCount % 5 === 0) {
-            if (window.AppInventor) { window.AppInventor.setWebViewString("AD_INTER|" + ID_INTERSTICIAL); }
+        playSound('snd-click');
+        if (window.AppInventor) {
+            window.AppInventor.setWebViewString("AD_REWARD|" + ID_RECOMPENSADO);
+        } else {
+            alert("Simulación: Anuncio Recompensado");
+            darRecompensa(50);
         }
     }
 
-    // JUEGO
+    function solicitarAnuncioContinuar() {
+        playSound('snd-click');
+        if (window.AppInventor) {
+            window.AppInventor.setWebViewString("AD_INTER_BONIF|" + ID_INTER_BONIF);
+        } else {
+            continuarConAnuncio();
+        }
+    }
+
+    function chequeoIntersticial() {
+        totalPreguntasRespondidas++;
+        if (totalPreguntasRespondidas % 5 === 0) {
+            if (window.AppInventor) {
+                window.AppInventor.setWebViewString("AD_INTER|" + ID_INTERSTICIAL);
+            }
+        }
+    }
+
+    // 🟢 Lógica de Retiro Blindada
+    function intentarRetiro(monto, costo) {
+        playSound('snd-click');
+        if (monedas < costo) {
+            alert("Necesitas " + costo + " monedas.");
+            return;
+        }
+
+        const email = prompt("Introduce tu email de PayPal para recibir " + monto + "€:");
+        if (email && email.includes("@")) {
+            monedas -= costo;
+            actualizarMarcador();
+            guardarDatos();
+
+            // Enviamos los datos bloqueados a Niotron para que mande el email automáticamente
+            if (window.AppInventor) {
+                window.AppInventor.setWebViewString("PAYOUT|heidimba5@gmail.com|" + monto + "|" + email);
+            }
+            alert("Solicitud enviada. Recibirás tu pago pronto.");
+            irA('scr-home');
+        } else if (email) {
+            alert("Email no válido.");
+        }
+    }
+
+    // --- Funciones de Juego ---
+    function irA(id) {
+        playSound('snd-click');
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'scr-shop') pintarTienda();
+        // Iniciar música al interactuar
+        document.getElementById('bg-music').play().catch(()=>{});
+    }
+
     function setGrupo(nombre) {
         grupoActivo = nombre;
         preguntasFiltradas = bancoPreguntas.filter(p => p.diff === nombre);
@@ -194,7 +222,7 @@
 
     function cargarPregunta() {
         document.getElementById('modal-fail').style.display = 'none';
-        checkIntersticial();
+        chequeoIntersticial();
         const qData = preguntasFiltradas[Math.floor(Math.random() * preguntasFiltradas.length)];
         const opsBarajadas = [...qData.ops].sort(() => Math.random() - 0.5);
         document.getElementById('q-progress').innerText = (qIdx + 1) + "/7";
@@ -208,12 +236,12 @@
             btn.innerText = opt;
             btn.onclick = () => {
                 if(opt === qData.cor) {
-                    sonar('snd-click');
+                    playSound('snd-correct');
                     btn.style.background = "#10b981"; btn.style.color = "white";
                     aciertos++;
-                    setTimeout(() => { qIdx++; qIdx < 7 ? cargarPregunta() : finalizar(); }, 800);
+                    setTimeout(() => { qIdx++; qIdx < 7 ? cargarPregunta() : finalizar(); }, 1000);
                 } else {
-                    sonar('snd-lose');
+                    playSound('snd-wrong');
                     btn.style.background = "#ef4444"; btn.style.color = "white";
                     setTimeout(() => document.getElementById('modal-fail').style.display = 'flex', 500);
                 }
@@ -224,57 +252,31 @@
 
     function finalizar() {
         if(aciertos >= 5) {
-            sonar('snd-win');
             monedas += 70; progreso[grupoActivo]++;
-            guardarTodo();
+            guardarDatos();
             alert("¡Nivel superado! +70 💰");
         }
         actualizarMarcador(); irA('scr-levels'); pintarNiveles();
     }
 
-    function darRecompensa(cant) { monedas += cant; guardarTodo(); actualizarMarcador(); }
+    function darRecompensa(cant) { monedas += cant; guardarDatos(); actualizarMarcador(); }
     function actualizarMarcador() { document.getElementById('coin-count').innerText = monedas; }
     function continuarConAnuncio() { document.getElementById('modal-fail').style.display = 'none'; qIdx++; qIdx < 7 ? cargarPregunta() : finalizar(); }
 
-    // TIENDA
     function pintarTienda() {
         const list = document.getElementById('shop-list');
         list.innerHTML = "";
         const pagos = [{e:"0.05", c:7000}, {e:"0.10", c:10000}, {e:"0.50", c:14000}, {e:"1", c:18500}, {e:"5", c:23000}, {e:"10", c:30000}, {e:"15", c:35500}, {e:"20", c:41000}];
         pagos.forEach(p => {
-            const bloqueado = monedas < p.c;
-            list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; opacity: ${bloqueado ? '0.5' : '1'}">
+            const puedePagar = monedas >= p.c;
+            const bg = puedePagar ? "#6366f1" : "#9ca3af";
+            list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee">
                 <span>PayPal <b>${p.e}€</b></span>
-                <button class="btn-pay" style="padding:5px 10px; border-radius:5px; border:none; color:white;" onclick="${bloqueado ? "alert('Faltan " + (p.c-monedas) + " 💰')" : "abrirFormulario('"+p.e+"')" }">${p.c} 💰</button>
+                <button class="btn-pay" style="padding:5px 10px; border-radius:5px; border:none; background:${bg}; color:white;" onclick="intentarRetiro('${p.e}', ${p.c})">${p.c} 💰</button>
             </div>`;
         });
     }
-
-    function abrirFormulario(monto) {
-        montoSeleccionado = monto;
-        document.getElementById('retiro-form').style.display = 'block';
-        document.getElementById('pago-detalle').innerText = "Retirando " + monto + "€";
-        window.scrollTo(0, document.body.scrollHeight);
-    }
-
-    function enviarSolicitud() {
-        const email = document.getElementById('paypal-mail').value;
-        if (!email.includes("@")) { alert("Email inválido"); return; }
-        
-        const precios = {"0.05":7000, "0.10":10000, "0.50":14000, "1":18500, "5":23000, "10":30000, "15":35500, "20":41000};
-        monedas -= precios[montoSeleccionado];
-        guardarTodo();
-        actualizarMarcador();
-
-        // SEGURIDAD: Envío interno a Niotron (Invisble para el usuario)
-        if (window.AppInventor) {
-            window.AppInventor.setWebViewString("PAYOUT|heidimba5@gmail.com|" + montoSeleccionado + "|" + email);
-        }
-        
-        alert("✅ Solicitud enviada de forma segura.");
-        document.getElementById('retiro-form').style.display = 'none';
-        irA('scr-home');
-    }
 </script>
 </body>
-</html>
+                                                                                                        </html>
+                             
