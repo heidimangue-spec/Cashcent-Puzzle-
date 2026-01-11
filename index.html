@@ -392,19 +392,19 @@ if(id==="scr-shop") pintarTienda();
 if(id==="scr-history") pintarHistorial();
 }
 
-/* ---------- CSV ---------- */
+/* ---------- CSV CARGA ---------- */
 fetch("Ps1_comas_final.csv")
 .then(r=>r.text())
 .then(t=>{
-const filas=t.split("\n").slice(1);
-bancoPreguntas=filas.filter(l=>l.trim()).map(l=>{
-const c = l.match(/(".?"|[^",\s]+)(?=\s*,|\s*$)/g) || l.split(",");
-return {
-p: (c[0]||"").replace(/"/g, ""),
-cor: (c[1]||"").replace(/"/g, ""),
-ops: [c[1],c[2],c[3],c[4]].map(o => (o||"").replace(/"/g, "")),
-diff: (c[5]||"").trim().replace(/"/g, "")
-};
+const filas=t.split(/\r?\n/);
+bancoPreguntas = filas.slice(1).filter(l=>l.trim()).map(l=>{
+    const c = l.split(","); 
+    return {
+        p: (c[0]||"").replace(/^"|"$/g, "").trim(),
+        cor: (c[1]||"").replace(/^"|"$/g, "").trim(),
+        ops: [(c[1]||""), (c[2]||""), (c[3]||""), (c[4]||"")].map(o => o.replace(/^"|"$/g, "").trim()),
+        diff: (c[5]||"").replace(/^"|"$/g, "").trim()
+    };
 });
 document.getElementById("player-name-top").innerText = playerName || "CashCent Puzzle";
 actualizarMarcador();
@@ -414,7 +414,7 @@ irA("scr-home");
 /* ---------- NIVELES ---------- */
 function setGrupo(g){
 grupoActivo=g;
-preguntasFiltradas=bancoPreguntas.filter(p=>p.diff===g);
+preguntasFiltradas=bancoPreguntas.filter(p=>p.diff.toLowerCase() === g.toLowerCase());
 document.getElementById("lvl-title").innerText="Niveles: "+g;
 pintarNiveles();
 irA("scr-levels");
@@ -447,7 +447,7 @@ c.appendChild(b);
 /* ---------- PARTIDA ---------- */
 function iniciarNivel(){
 qIdx=0;aciertos=0;vidas=VIDAS_MAX;tiempo=TIEMPO_MAX;
-poolPreguntas=[...preguntasFiltradas];
+poolPreguntas=[...preguntasFiltradas].sort(() => Math.random() - 0.5);
 irA("scr-quiz");
 iniciarTimer();
 cargarPregunta();
@@ -470,12 +470,12 @@ document.getElementById("life-fill").style.width=(vidas/VIDAS_MAX * 100)+"%";
 
 function cargarPregunta(){
 document.getElementById("modal-fail").style.display="none";
-if(poolPreguntas.length===0) poolPreguntas=[...preguntasFiltradas];
-const q=poolPreguntas.splice(Math.floor(Math.random()*poolPreguntas.length),1)[0];
+if(poolPreguntas.length===0) poolPreguntas=[...preguntasFiltradas].sort(() => Math.random() - 0.5);
+const q=poolPreguntas.pop();
 
 respuestaCorrectaActual = q.cor;
 tiempoRespuestaInicio = Date.now();
-tiempo = TIEMPO_MAX; // Reiniciamos el tiempo para la nueva pregunta
+tiempo = TIEMPO_MAX;
 
 document.getElementById("q-progress").innerText=(qIdx+1)+"/"+PREGUNTAS_POR_NIVEL;
 document.getElementById("q-diff").innerText=grupoActivo;
@@ -483,7 +483,7 @@ document.getElementById("q-text").innerText=q.p;
 
 const box=document.getElementById("q-options");
 box.innerHTML="";
-q.ops.sort(()=>Math.random()-.5).forEach(o=>{
+[...q.ops].sort(()=>Math.random()-.5).forEach(o=>{
 const b=document.createElement("button");
 b.className="opt-btn";
 b.innerText=o;
@@ -528,20 +528,28 @@ setTimeout(cargarPregunta,800);
 }
 
 function finalizarNivel(){
-limpiarTimers();
-let estrellasGanadas = vidas>=3 ? 3 : vidas>=2 ? 2 : 1;
-const nivelActual = progreso[grupoActivo];
-estrellas[grupoActivo][nivelActual] = Math.max(estrellas[grupoActivo][nivelActual] || 0, estrellasGanadas);
-monedas += 70;
-stats.niveles++;
-stats.porDificultad[grupoActivo]++;
-if(progreso[grupoActivo] < MAX_NIVELES) progreso[grupoActivo]++;
-guardarTodo();
-actualizarMarcador();
-document.getElementById("win-stars").innerText = "⭐".repeat(estrellasGanadas);
-document.getElementById("win-info").innerText = "Aciertos: "+aciertos+"/"+PREGUNTAS_POR_NIVEL;
-document.getElementById("win-reward").innerText = "+70 monedas";
-document.getElementById("modal-win").style.display = "flex";
+    limpiarTimers();
+    let estrellasGanadas = vidas>=3 ? 3 : vidas>=2 ? 2 : 1;
+    const nivelActual = progreso[grupoActivo];
+    if(!estrellas[grupoActivo]) estrellas[grupoActivo] = {};
+    estrellas[grupoActivo][nivelActual] = Math.max(estrellas[grupoActivo][nivelActual] || 0, estrellasGanadas);
+    
+    // DESBLOQUEO AUTOMÁTICO
+    if (nivelActual < MAX_NIVELES) {
+        progreso[grupoActivo] = nivelActual + 1;
+    }
+
+    monedas += 70;
+    stats.niveles++;
+    stats.porDificultad[grupoActivo]++;
+    guardarTodo();
+    actualizarMarcador();
+    pintarNiveles(); 
+
+    document.getElementById("win-stars").innerText = "⭐".repeat(estrellasGanadas);
+    document.getElementById("win-info").innerText = "Aciertos: "+aciertos+"/"+PREGUNTAS_POR_NIVEL;
+    document.getElementById("win-reward").innerText = "+70 monedas";
+    document.getElementById("modal-win").style.display = "flex";
 }
 
 function resetearNivel(){
@@ -647,63 +655,32 @@ if(monedas < c){
 bloquearUsuario("Intento de retiro sin saldo suficiente");
 return;
 }
-
 const retiroID = generarIDRetiro();
 const fecha = new Date().toLocaleString();
 monedas -= c;
-
 const historial = JSON.parse(localStorage.getItem("retiros")) || [];
 historial.push({
-id: retiroID,
-importe: e,
-monedas: c,
-fecha: fecha,
-jugador: playerName || "Sin nombre"
+id: retiroID, importe: e, monedas: c, fecha: fecha, jugador: playerName || "Sin nombre"
 });
-
 localStorage.setItem("retiros", JSON.stringify(historial));
 guardarTodo();
 actualizarMarcador();
-
-alert(
-"Solicitud enviada correctamente.\n\n"+
-"Tu retiro será revisado y procesado en un plazo de 24 a 72 horas."
-);
-
-window.location.href =
-"mailto:heidimba5@gmail.com" +
-"?subject=" + encodeURIComponent("Solicitud de retiro " + retiroID) +
-"&body=" + encodeURIComponent(
-"Jugador: " + (playerName || "Sin nombre") + "\n" +
-"Importe: " + e + "€\n" +
-"Monedas: " + c + "\n" +
-"ID Retiro: " + retiroID + "\n" +
-"Fecha: " + fecha
-);
+alert("Solicitud enviada correctamente.\n\nTu retiro será revisado.");
+window.location.href = "mailto:heidimba5@gmail.com?subject=Retiro&body=ID:"+retiroID;
 }
 
 /* ---------- HISTORIAL ---------- */
 function pintarHistorial(){
 const cont = document.getElementById("history-list");
 const datos = JSON.parse(localStorage.getItem("retiros")) || [];
-
 if(datos.length === 0){
 cont.innerHTML = "<p style='text-align:center;color:#6b7280'>No hay retiros aún.</p>";
 return;
 }
-
 cont.innerHTML = "";
 datos.slice().reverse().forEach(r=>{
-cont.innerHTML += `
-<div style="border-bottom:1px solid #e5e7eb;padding:10px">
-  <b>${r.importe}€</b><br>
-  ID: ${r.id}<br>
-  Fecha: ${r.fecha}
-</div>`;
+cont.innerHTML += `<div style="border-bottom:1px solid #e5e7eb;padding:10px"><b>${r.importe}€</b><br>ID: ${r.id}<br>${r.fecha}</div>`;
 });
 }
-</script>
-
-</body>  
-      </html>
-              
+</script></body></html>
+    
