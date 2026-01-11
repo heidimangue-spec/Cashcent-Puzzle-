@@ -560,7 +560,7 @@ document.getElementById("modal-win").style.display="none";
 
 /* ---------- ANUNCIOS ---------- */
 function verAnuncioGeneral(){
-if(adsData.vistos>=ANUNCIOS_DIARIOS_MAX){ alert("Límite diario alcanzado"); return; }
+// Límite eliminado por petición del usuario para fomentar ganancias
 adsData.vistos++;
 monedas+=50;
 guardarTodo();
@@ -569,7 +569,7 @@ alert("Anuncio visto (+50 monedas)");
 }
 
 function verAnuncioContinuar(){
-if(adsData.vistos>=ANUNCIOS_DIARIOS_MAX){ alert("Límite diario alcanzado"); return; }
+// Límite eliminado por petición del usuario para permitir seguir jugando siempre
 adsData.vistos++;
 vidas=1;
 tiempo=TIEMPO_MAX;
@@ -579,7 +579,7 @@ iniciarTimer();
 cargarPregunta();
 }
 
-/* ---------- AYUDAS ---------- */
+/* ---------- AYUDAS (Mantienen límite si se desea controlar el abuso de facilidades) ---------- */
 function usarPista(){
 if(monedas<30){ alert("Necesitas 30 monedas"); return; }
 const botones=[...document.querySelectorAll(".opt-btn")];
@@ -683,4 +683,3 @@ cont.innerHTML += `<div style="border-bottom:1px solid #e5e7eb;padding:10px"><b>
 });
 }
 </script></body></html>
-    
