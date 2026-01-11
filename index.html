@@ -459,7 +459,10 @@ actualizarBarras();
 timer=setInterval(()=>{
 tiempo--;
 actualizarBarras();
-if(tiempo<=0) perderVida();
+if(tiempo<=0) {
+    playSound("snd-wrong");
+    perderVida();
+}
 },100);
 }
 
@@ -475,7 +478,7 @@ const q=poolPreguntas.pop();
 
 respuestaCorrectaActual = q.cor;
 tiempoRespuestaInicio = Date.now();
-tiempo = TIEMPO_MAX;
+tiempo = TIEMPO_MAX; // REINICIO DE VARA DE TIEMPO
 
 document.getElementById("q-progress").innerText=(qIdx+1)+"/"+PREGUNTAS_POR_NIVEL;
 document.getElementById("q-diff").innerText=grupoActivo;
@@ -560,7 +563,6 @@ document.getElementById("modal-win").style.display="none";
 
 /* ---------- ANUNCIOS ---------- */
 function verAnuncioGeneral(){
-// Límite eliminado por petición del usuario para fomentar ganancias
 adsData.vistos++;
 monedas+=50;
 guardarTodo();
@@ -569,7 +571,6 @@ alert("Anuncio visto (+50 monedas)");
 }
 
 function verAnuncioContinuar(){
-// Límite eliminado por petición del usuario para permitir seguir jugando siempre
 adsData.vistos++;
 vidas=1;
 tiempo=TIEMPO_MAX;
@@ -579,7 +580,7 @@ iniciarTimer();
 cargarPregunta();
 }
 
-/* ---------- AYUDAS (Mantienen límite si se desea controlar el abuso de facilidades) ---------- */
+/* ---------- AYUDAS ---------- */
 function usarPista(){
 if(monedas<30){ alert("Necesitas 30 monedas"); return; }
 const botones=[...document.querySelectorAll(".opt-btn")];
@@ -683,3 +684,4 @@ cont.innerHTML += `<div style="border-bottom:1px solid #e5e7eb;padding:10px"><b>
 });
 }
 </script></body></html>
+  
