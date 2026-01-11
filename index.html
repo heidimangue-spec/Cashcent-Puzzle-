@@ -518,7 +518,10 @@ function cargarPregunta(){
   
 function avanzarPregunta(){  
   qIdx++;  
-  if(qIdx<PREGUNTAS_POR_NIVEL) cargarPregunta();  
+  if(qIdx<PREGUNTAS_POR_NIVEL) {
+    tiempo = TIEMPO_MAX; // Reiniciamos el tiempo para la siguiente pregunta
+    cargarPregunta();
+  }  
   else finalizarNivel();  
 }  
   
@@ -644,71 +647,4 @@ function pintarTienda(){
 }  
   
 function confirmarRetiro(e,c){  
-  if(!confirm("¿Confirmas retirar "+e+"€ por "+c+" monedas?")) return;  
-  retirar(e,c);  
-}  
-  
-function retirar(e,c){  
-  if(monedas < c){
-    bloquearUsuario("Intento de retiro sin saldo suficiente");
-    return;
-  }
-
-  const retiroID = generarIDRetiro();
-  const fecha = new Date().toLocaleString();
-  monedas -= c;
-
-  const historial = JSON.parse(localStorage.getItem("retiros")) || [];
-  historial.push({
-    id: retiroID,
-    importe: e,
-    monedas: c,
-    fecha: fecha,
-    jugador: playerName || "Sin nombre"
-  });
-
-  localStorage.setItem("retiros", JSON.stringify(historial));
-  guardarTodo();
-  actualizarMarcador();
-
-  alert(
-    "Solicitud enviada correctamente.\n\n"+
-    "Tu retiro será revisado y procesado en un plazo de 24 a 72 horas."
-  );
-
-  window.location.href =
-    "mailto:heidimba5@gmail.com" +
-    "?subject=" + encodeURIComponent("Solicitud de retiro " + retiroID) +
-    "&body=" + encodeURIComponent(
-      "Jugador: " + (playerName || "Sin nombre") + "\n" +
-      "Importe: " + e + "€\n" +
-      "Monedas: " + c + "\n" +
-      "ID Retiro: " + retiroID + "\n" +
-      "Fecha: " + fecha
-    );
-}
-
-/* ---------- HISTORIAL ---------- */
-function pintarHistorial(){
-  const cont = document.getElementById("history-list");
-  const datos = JSON.parse(localStorage.getItem("retiros")) || [];
-
-  if(datos.length === 0){
-    cont.innerHTML = "<p style='text-align:center;color:#6b7280'>No hay retiros aún.</p>";
-    return;
-  }
-
-  cont.innerHTML = "";
-  datos.slice().reverse().forEach(r=>{
-    cont.innerHTML += `
-      <div style="border-bottom:1px solid #e5e7eb;padding:10px">
-        <b>${r.importe}€</b><br>
-        ID: ${r.id}<br>
-        Fecha: ${r.fecha}
-      </div>
-    `;
-  });
-  }
-  </script>
-</body>
-</html>
+  if(!confirm("¿Confirmas retirar "+e+"€ por "+c+" mon
