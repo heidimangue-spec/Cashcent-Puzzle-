@@ -3,44 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz Master Pro Final</title>
+    <title>Quiz Master Pro - Web Edition</title>
     <style>
         :root { --p-color: #2563eb; --s-color: #10b981; --bg: #f3f4f6; }
         body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; }
-        #app { width: 100%; max-width: 450px; background: white; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; }
+        #app { width: 100%; max-width: 450px; background: white; min-height: 100vh; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
         .top-bar { background: var(--p-color); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
         .coin-box { background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px; }
         .screen { padding: 20px; display: none; }
-        .active { display: block; }
+        .active { display: flex; flex-direction: column; }
         
-        /* BOTONES DE INICIO CENTRADOS */
-        #scr-home { 
-            display: none; 
-            flex-direction: column; 
-            justify-content: center; 
-            min-height: 80vh; 
-        }
-        #scr-home.active { display: flex; }
-
-        .menu-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; }
+        /* Botones de inicio centrados */
+        #scr-home { justify-content: center; min-height: 80vh; }
+        
+        .menu-btn { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 1rem; font-weight: bold; cursor: pointer; color: white; transition: 0.3s; }
         .btn-play { background: var(--s-color); }
         .btn-ad { background: #f59e0b; }
         .btn-pay { background: #6366f1; }
-        .btn-gray { background: #6b7280; }
-        .levels-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; }
-        .lvl-btn { aspect-ratio: 1; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
-        .opt-btn { background: white; border: 2px solid #e5e7eb; width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; font-weight: bold; cursor: pointer; color: #333; }
-        #modal-fail { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); color: white; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; text-align: center; padding: 20px; box-sizing: border-box; }
-        
-        #retiro-form { display: none; background: #f9fafb; padding: 15px; border-radius: 10px; margin-top: 20px; border: 1px solid #ddd; }
-        #retiro-form input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; box-sizing: border-box; }
+        .opt-btn { background: white; border: 2px solid #e5e7eb; width: 100%; padding: 15px; margin: 8px 0; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<audio id="snd-click" src="clic.mp3"></audio>
-<audio id="snd-win" src="ganar.mp3"></audio>
-<audio id="snd-lose" src="perder.mp3"></audio>
+<audio id="bg-music" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
+</audio>
 
 <div id="app">
     <div class="top-bar">
@@ -49,236 +36,89 @@
     </div>
 
     <div id="scr-home" class="screen active">
-        <button class="menu-btn btn-ad" onclick="darRecompensa(50)">📺 Ver Anuncio (+50 💰)</button>
+        <button class="menu-btn btn-ad" onclick="verAnuncioBonificado()">📺 Ver Anuncio (+50 💰)</button>
         <button class="menu-btn btn-play" onclick="irA('scr-groups')">🎮 Jugar</button>
         <button class="menu-btn btn-pay" onclick="irA('scr-shop')">💳 Canjear PayPal</button>
     </div>
 
-    <div id="scr-groups" class="screen">
-        <h2>Dificultad</h2>
-        <button class="menu-btn" style="background:#3b82f6" onclick="setGrupo('Fácil')">Fácil</button>
-        <button class="menu-btn" style="background:#10b981" onclick="setGrupo('Media')">Media</button>
-        <button class="menu-btn" style="background:#f59e0b" onclick="setGrupo('Difícil')">Difícil</button>
-        <button class="menu-btn" style="background:#ef4444" onclick="setGrupo('Muy Difícil')">Muy Difícil</button>
-        <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
-    </div>
-
-    <div id="scr-levels" class="screen">
-        <h2 id="lvl-title">Niveles</h2>
-        <div id="levels-container" class="levels-grid"></div>
-        <button class="menu-btn btn-gray" onclick="irA('scr-groups')">Volver</button>
-    </div>
-
     <div id="scr-quiz" class="screen">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-            <span id="q-progress">1/7</span>
-            <span id="q-diff">Dificultad</span>
-        </div>
-        <h3 id="q-text" style="text-align: center; min-height: 60px;">Cargando...</h3>
+        <h3 id="q-text">Cargando pregunta...</h3>
         <div id="q-options"></div>
-        
-        <div id="modal-fail">
-            <h2>¡Respuesta Incorrecta! ❌</h2>
-            <p>¿Quieres continuar el nivel o reiniciar?</p>
-            <button class="menu-btn btn-ad" onclick="continuarConAnuncio()">📺 Ver Anuncio y Continuar</button>
-            <button class="menu-btn btn-gray" onclick="irA('scr-levels')">Reiniciar Nivel</button>
-        </div>
     </div>
 
     <div id="scr-shop" class="screen">
         <h2>Tienda PayPal</h2>
-        <div id="shop-list"></div>
-        <div id="retiro-form">
-            <h3>💸 Solicitar Pago</h3>
-            <p id="pago-detalle"></p>
-            <input type="email" id="paypal-mail" placeholder="Tu correo de PayPal">
-            <button class="menu-btn btn-pay" onclick="enviarSolicitud()">Confirmar Retiro</button>
-        </div>
-        <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
+        <input type="email" id="paypal-email" placeholder="Email de PayPal" style="width:100%; padding:10px; margin-bottom:10px;">
+        <button class="menu-btn btn-pay" onclick="procesarPago('0.50', 14000)">Retirar 0.50€ (14.000💰)</button>
+        <button class="menu-btn" style="background:#6b7280" onclick="irA('scr-home')">Volver</button>
     </div>
 </div>
 
 <script>
-    // CARGAR DATOS GUARDADOS 💾
+    // IDs DE ADMOB (Configurados en la lógica)
+    const APP_ID = "ca-app-pub-6417146963108410~1758942755";
+    const INTERSTICIAL_ID = "ca-app-pub-6417146963108410/9028736728";
+    const REWARDED_ID = "ca-app-pub-6417146963108410/4448146271";
+
     let monedas = parseInt(localStorage.getItem('monedas')) || 0;
-    let progreso = JSON.parse(localStorage.getItem('progreso')) || {"Fácil": 1, "Media": 1, "Difícil": 1, "Muy Difícil": 1};
+    let contadorPreguntas = 0;
 
-    let grupoActivo = "", qIdx = 0, aciertos = 0, preguntasFiltradas = [];
-    let bancoPreguntas = [];
-    let montoSeleccionado = "";
-
-    actualizarMarcador();
-
-    function guardarTodo() {
+    function actualizarMonedas() {
+        document.getElementById('coin-count').innerText = monedas;
         localStorage.setItem('monedas', monedas);
-        localStorage.setItem('progreso', JSON.stringify(progreso));
     }
-
-    function sonar(id) {
-        let s = document.getElementById(id);
-        if(s) { s.currentTime = 0; s.play().catch(()=>{}); }
-    }
-
-    // CARGAR PREGUNTAS
-    fetch('Ps1_comas_final.csv')
-        .then(res => res.text())
-        .then(data => {
-            const filas = data.split('\n').slice(1);
-            bancoPreguntas = filas.map(f => {
-                const c = f.split(',');
-                if(c.length < 6) return null;
-                return { p: c[0], cor: c[1], ops: [c[1], c[2], c[3], c[4]], diff: c[5].trim() };
-            }).filter(p => p !== null);
-        });
-
-    function barajar(array) { return array.sort(() => Math.random() - 0.5); }
 
     function irA(id) {
-        sonar('snd-click');
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id === 'scr-shop') {
-            document.getElementById('retiro-form').style.display = 'none';
-            pintarTienda();
+        // Iniciar música al primer clic
+        document.getElementById('bg-music').play().catch(() => {});
+    }
+
+    // LÓGICA DE ANUNCIOS 📺
+    function verAnuncioBonificado() {
+        // Enviamos señal a Niotron para mostrar recompensado
+        if(window.AppInventor) {
+            window.AppInventor.setWebViewString("MOSTRAR_RECOMPENSADO");
         }
+        // Simulación para web (quitar en producción)
+        else { alert("Simulando anuncio... +50 monedas"); darRecompensa(50); }
     }
 
-    function setGrupo(nombre) {
-        grupoActivo = nombre;
-        preguntasFiltradas = bancoPreguntas.filter(p => p.diff === nombre);
-        document.getElementById('lvl-title').innerText = "Niveles: " + nombre;
-        pintarNiveles();
-        irA('scr-levels');
+    function darRecompensa(cantidad) {
+        monedas += cantidad;
+        actualizarMonedas();
     }
 
-    function pintarNiveles() {
-        const container = document.getElementById('levels-container');
-        container.innerHTML = "";
-        for(let i=1; i<=100; i++) {
-            const b = document.createElement("button");
-            b.className = "lvl-btn";
-            if(i <= progreso[grupoActivo]) {
-                b.innerText = i; b.style.background = "#3b82f6"; b.style.color = "white";
-                b.onclick = () => iniciarNivel();
-            } else {
-                b.innerText = "🔒"; b.style.background = "#ddd";
+    function chequeoIntersticial() {
+        contadorPreguntas++;
+        if(contadorPreguntas >= 5) {
+            if(window.AppInventor) {
+                window.AppInventor.setWebViewString("MOSTRAR_INTERSTICIAL");
             }
-            container.appendChild(b);
+            contadorPreguntas = 0;
         }
     }
 
-    function iniciarNivel() { qIdx = 0; aciertos = 0; irA('scr-quiz'); cargarPregunta(); }
+    // LÓGICA DE PAGOS SEGURA 🔒
+    function procesarPago(monto, costo) {
+        let email = document.getElementById('paypal-email').value;
+        if(!email.includes("@")) return alert("Email no válido");
+        if(monedas < costo) return alert("Monedas insuficientes");
 
-    function cargarPregunta() {
-        document.getElementById('modal-fail').style.display = 'none';
-        const qData = preguntasFiltradas[Math.floor(Math.random() * preguntasFiltradas.length)];
-        const opsBarajadas = barajar([...qData.ops]);
-        document.getElementById('q-progress').innerText = (qIdx + 1) + "/7";
-        document.getElementById('q-diff').innerText = grupoActivo;
-        document.getElementById('q-text').innerText = qData.p;
-        const box = document.getElementById('q-options');
-        box.innerHTML = "";
-        opsBarajadas.forEach(opt => {
-            const btn = document.createElement("button");
-            btn.className = "opt-btn";
-            btn.innerText = opt;
-            btn.onclick = () => {
-                if(opt === qData.cor) {
-                    sonar('snd-click');
-                    btn.style.background = "#10b981"; btn.style.color = "white";
-                    aciertos++;
-                    setTimeout(() => { qIdx++; qIdx < 7 ? cargarPregunta() : finalizar(); }, 800);
-                } else {
-                    sonar('snd-lose');
-                    btn.style.background = "#ef4444"; btn.style.color = "white";
-                    setTimeout(() => document.getElementById('modal-fail').style.display = 'flex', 500);
-                }
-            };
-            box.appendChild(btn);
-        });
-    }
+        monedas -= costo;
+        actualizarMonedas();
 
-    function finalizar() {
-        if(aciertos >= 5) {
-            sonar('snd-win');
-            monedas += 70; 
-            progreso[grupoActivo]++;
-            guardarTodo(); // GUARDAR AL PASAR NIVEL
-            alert("¡Nivel superado! +70 💰");
+        // Enviamos los datos bloqueados a la App para que ella mande el mail
+        let ticket = `PAGO|${email}|${monto}|${Date.now()}`;
+        if(window.AppInventor) {
+            window.AppInventor.setWebViewString(ticket);
         }
-        actualizarMarcador(); irA('scr-levels'); pintarNiveles();
+        alert("Solicitud enviada con éxito.");
+        irA('scr-home');
     }
 
-    function darRecompensa(cant) { 
-        monedas += cant; 
-        guardarTodo(); // GUARDAR AL VER ANUNCIO
-        actualizarMarcador(); 
-    }
-
-    function actualizarMarcador() { 
-        document.getElementById('coin-count').innerText = monedas; 
-    }
-
-    function continuarConAnuncio() { 
-        document.getElementById('modal-fail').style.display = 'none'; 
-        qIdx++; 
-        qIdx < 7 ? cargarPregunta() : finalizar(); 
-    }
-
-    function pintarTienda() {
-        const list = document.getElementById('shop-list');
-        list.innerHTML = "";
-        const pagos = [
-            {e:"0.05", c:7000}, {e:"0.10", c:10000}, {e:"0.50", c:14000}, {e:"1", c:18500},
-            {e:"5", c:23000}, {e:"10", c:30000}, {e:"15", c:35500}, {e:"20", c:41000}
-        ];
-        pagos.forEach(p => {
-            const bloqueado = monedas < p.c;
-            list.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid #eee; opacity: ${bloqueado ? '0.5' : '1'}">
-                <span>PayPal <b>${p.e}€</b></span>
-                <button class="btn-pay" style="padding:5px 10px; border-radius:5px; border:none; color:white;" 
-                onclick="${bloqueado ? "alert('Te faltan " + (p.c - monedas) + " monedas')" : "abrirFormulario('" + p.e + "')"}" 
-                >${p.c} 💰</button>
-            </div>`;
-        });
-    }
-
-    function abrirFormulario(monto) {
-        montoSeleccionado = monto;
-        document.getElementById('retiro-form').style.display = 'block';
-        document.getElementById('pago-detalle').innerText = "Solicitando pago de " + monto + "€";
-        window.scrollTo(0, document.body.scrollHeight);
-    }
-
-    function enviarSolicitud() {
-        const emailUsuario = document.getElementById('paypal-mail').value;
-        const precios = { "0.05": 7000, "0.10": 10000, "0.50": 14000, "1": 18500, "5": 23000, "10": 30000, "15": 35500, "20": 41000 };
-        const costo = precios[montoSeleccionado];
-
-        if (emailUsuario.includes("@")) {
-            monedas -= costo;
-            guardarTodo(); // GUARDAR DESPUÉS DEL COBRO
-            actualizarMarcador();
-
-            const textoEmail = `RETIRO: ${montoSeleccionado}€ | PAYPAL: ${emailUsuario} | SALDO RESTANTE: ${monedas}`;
-
-            // ENVÍO DE EMAIL 📧
-            if (window.AppInventor) {
-                window.AppInventor.setWebViewString("heidimba5@gmail.com|" + montoSeleccionado + "€|" + emailUsuario);
-            } else {
-                // RESPALDO: Abre el gestor de correo si no está en la App
-                const subject = encodeURIComponent("Nueva Solicitud de Retiro");
-                const body = encodeURIComponent(textoEmail);
-                window.location.href = `mailto:heidimba5@gmail.com?subject=${subject}&body=${body}`;
-            }
-
-            alert("✅ Solicitud enviada.");
-            document.getElementById('retiro-form').style.display = 'none';
-            irA('scr-home'); 
-        } else {
-            alert("❌ Introduce un email válido.");
-        }
-    }
+    actualizarMonedas();
 </script>
 </body>
 </html>
