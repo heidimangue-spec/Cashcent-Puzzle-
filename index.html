@@ -4,139 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CashCent Puzzle</title>
-</head>
 
-<body>
-
-<!-- ================= AUDIO ================= -->
-<audio id="bg-music" loop src="bg_relax_loop.mp3"></audio>
-<audio id="snd-click" src="click.mp3"></audio>
-<audio id="snd-correct" src="correct.mp3"></audio>
-<audio id="snd-wrong" src="wrong.mp3"></audio>
-
-<!-- ================= APP ================= -->
-<div id="app">
-
-<!-- ===== TOP BAR ===== -->
-<div class="top-bar">
-  <button class="snd-control" onclick="toggleMute()">🔊</button>
-  <span id="player-name-top">CashCent Puzzle</span>
-  <div class="coin-box">💰 <span id="coin-count">0</span></div>
-</div>
-
-<!-- ===== LOADING ===== -->
-<div id="scr-loading" class="screen active">
-  <h2>🔄 Cargando preguntas...</h2>
-</div>
-
-<!-- ===== HOME ===== -->
-<div id="scr-home" class="screen">
-  <button class="menu-btn btn-ad" onclick="verAnuncioGeneral()">📺 Ver anuncio (+50)</button>
-  <button class="menu-btn btn-play" onclick="irA('scr-groups')">🎮 Jugar</button>
-  <button class="menu-btn btn-gray" onclick="irA('scr-settings')">⚙️ Ajustes</button>
-  <button class="menu-btn btn-pay" onclick="irA('scr-shop')">💳 Canjear PayPal</button>
-</div>
-
-<!-- ===== SETTINGS ===== -->
-<div id="scr-settings" class="screen">
-  <h2>⚙️ Ajustes</h2>
-
-  <label>Nombre del jugador</label>
-  <input id="player-name-input" placeholder="Tu nombre">
-
-  <pre id="stats-box"></pre>
-
-  <button class="menu-btn btn-pay" onclick="irA('scr-support')">📩 Atención al Cliente</button>
-  <button class="menu-btn btn-gray" onclick="irA('scr-faq')">❓ Preguntas Frecuentes</button>
-
-  <button class="menu-btn btn-play" onclick="guardarAjustes()">Guardar</button>
-  <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
-</div>
-
-<!-- ===== FAQ ===== -->
-<div id="scr-faq" class="screen">
-  <h2>❓ Preguntas Frecuentes</h2>
-
-  <p><b>💰 ¿Cómo gano monedas?</b><br>Jugando niveles y viendo anuncios.</p>
-  <p><b>📺 ¿Por qué hay límite de anuncios?</b><br>Para evitar abusos.</p>
-  <p><b>💳 ¿PayPal es real?</b><br>Sí, los pagos se procesan manualmente.</p>
-  <p><b>⏳ ¿Cuánto tarda un retiro?</b><br>Entre 24 y 72 horas.</p>
-
-  <button class="menu-btn btn-gray" onclick="irA('scr-settings')">Volver</button>
-</div>
-
-<!-- ===== SOPORTE ===== -->
-<div id="scr-support" class="screen">
-  <h2>📩 Atención al Cliente</h2>
-
-  <input id="support-subject" placeholder="Asunto">
-  <textarea id="support-message" rows="5" placeholder="Describe tu problema"></textarea>
-
-  <button class="menu-btn btn-play" onclick="enviarSoporte()">Enviar mensaje</button>
-  <button class="menu-btn btn-gray" onclick="irA('scr-settings')">Volver</button>
-</div>
-
-<!-- ===== DIFICULTADES ===== -->
-<div id="scr-groups" class="screen">
-  <h2>Dificultad</h2>
-
-  <button class="menu-btn" style="background:#3b82f6" onclick="setGrupo('Fácil')">Fácil</button>
-  <button class="menu-btn" style="background:#10b981" onclick="setGrupo('Media')">Media</button>
-  <button class="menu-btn" style="background:#f59e0b" onclick="setGrupo('Difícil')">Difícil</button>
-  <button class="menu-btn" style="background:#ef4444" onclick="setGrupo('Muy Difícil')">Muy Difícil</button>
-
-  <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
-</div>
-
-<!-- ===== LEVELS ===== -->
-<div id="scr-levels" class="screen">
-  <h2 id="lvl-title"></h2>
-  <div id="levels-container" class="levels-grid"></div>
-  <button class="menu-btn btn-gray" onclick="irA('scr-groups')">Volver</button>
-</div>
-
-<!-- ===== QUIZ ===== -->
-<div id="scr-quiz" class="screen">
-
-  <div style="display:flex;justify-content:space-between">
-    <span id="q-progress">1/7</span>
-    <span id="q-diff">Dificultad</span>
-  </div>
-
-  <div class="bar"><div id="time-fill"></div></div>
-  <div class="bar"><div id="life-fill"></div></div>
-
-  <h3 id="q-text"></h3>
-  <div id="q-options"></div>
-
-  <button class="menu-btn btn-gray" onclick="resetearNivel();irA('scr-levels')">Salir</button>
-
-  <div id="modal-fail">
-    <h2>❌ Has perdido</h2>
-    <button class="menu-btn btn-ad" onclick="verAnuncioContinuar()">Ver anuncio y continuar</button>
-    <button class="menu-btn btn-gray" onclick="resetearNivel();irA('scr-levels')">Salir</button>
-  </div>
-
-</div>
-
-<!-- ===== WIN MODAL ===== -->
-<div id="modal-win">
-  <h2>🎉 Nivel Superado</h2>
-  <div id="win-stars"></div>
-  <p id="win-info"></p>
-  <p id="win-reward"></p>
-  <button class="menu-btn btn-play" onclick="resetearNivel();irA('scr-levels')">Continuar</button>
-</div>
-
-<!-- ===== SHOP PAYPAL ===== -->
-<div id="scr-shop" class="screen">
-  <h2>💳 Canjear PayPal</h2>
-  <div id="shop-list"></div>
-  <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
-</div>
-
-</div>
-<!-- ================= END APP ================= -->
 <style>
 :root{
   --p:#2563eb;
@@ -210,7 +78,7 @@ body{
   font-weight:bold;
   color:#fff;
   cursor:pointer;
-  transition:transform .1s, filter .1s;
+  transition:.1s;
 }
 
 .menu-btn:active{
@@ -237,7 +105,6 @@ body{
   font-weight:bold;
   cursor:pointer;
   position:relative;
-  font-size:1rem;
 }
 
 .lvl-btn.unlocked{
@@ -275,19 +142,11 @@ body{
   border:2px solid #e5e7eb;
   font-weight:bold;
   cursor:pointer;
-  transition:background .2s, color .2s;
   background:#fff;
 }
 
-.opt-btn.correct{
-  background:var(--s);
-  color:#fff;
-}
-
-.opt-btn.wrong{
-  background:var(--danger);
-  color:#fff;
-}
+.opt-btn.correct{background:var(--s);color:#fff}
+.opt-btn.wrong{background:var(--danger);color:#fff}
 
 /* ===== BARS ===== */
 .bar{
@@ -298,26 +157,14 @@ body{
   overflow:hidden;
 }
 
-#time-fill{
-  height:100%;
-  background:var(--warn);
-  transition:width .1s linear;
-}
+#time-fill{height:100%;background:var(--warn)}
+#life-fill{height:100%;background:var(--danger)}
 
-#life-fill{
-  height:100%;
-  background:var(--danger);
-  transition:width .5s ease-in-out;
-}
-
-/* ===== FLASH ERROR ===== */
-@keyframes flashError{
-  0%{background:rgba(239,68,68,.6)}
-  100%{background:transparent}
-}
-
-.flash-error{
-  animation:flashError .15s;
+/* ===== HELP BAR ===== */
+.help-bar{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
 }
 
 /* ===== MODALS ===== */
@@ -335,16 +182,6 @@ body{
   align-items:center;
   text-align:center;
   padding:20px;
-  box-sizing:border-box;
-}
-
-#modal-win{
-  gap:10px;
-}
-
-#win-stars{
-  font-size:2rem;
-  color:var(--gold);
 }
 
 /* ===== INPUTS ===== */
@@ -354,11 +191,9 @@ input,textarea{
   border-radius:8px;
   border:none;
   margin:8px 0;
-  font-size:1rem;
-  box-sizing:border-box;
 }
 
-/* ===== SOUND BUTTON ===== */
+/* ===== SOUND ===== */
 .snd-control{
   background:none;
   border:none;
@@ -367,9 +202,99 @@ input,textarea{
   cursor:pointer;
 }
 </style>
+</head>
+
+<body>
+
+<audio id="bg-music" loop src="bg_relax_loop.mp3"></audio>
+<audio id="snd-click" src="click.mp3"></audio>
+<audio id="snd-correct" src="correct.mp3"></audio>
+<audio id="snd-wrong" src="wrong.mp3"></audio>
+
+<div id="app">
+
+<div class="top-bar">
+  <button class="snd-control" onclick="toggleMute()">🔊</button>
+  <span id="player-name-top">CashCent Puzzle</span>
+  <div class="coin-box">💰 <span id="coin-count">0</span></div>
+</div>
+
+<div id="scr-loading" class="screen active">
+  <h2>🔄 Cargando preguntas...</h2>
+</div>
+
+<div id="scr-home" class="screen">
+  <button class="menu-btn btn-ad" onclick="verAnuncioGeneral()">📺 Ver anuncio (+50)</button>
+  <button class="menu-btn btn-play" onclick="irA('scr-groups')">🎮 Jugar</button>
+  <button class="menu-btn btn-gray" onclick="irA('scr-settings')">⚙️ Ajustes</button>
+  <button class="menu-btn btn-pay" onclick="irA('scr-shop')">💳 Canjear PayPal</button>
+</div>
+
+<div id="scr-settings" class="screen">
+  <h2>⚙️ Ajustes</h2>
+  <label>Nombre del jugador</label>
+  <input id="player-name-input" placeholder="Tu nombre">
+  <pre id="stats-box"></pre>
+  <button class="menu-btn btn-play" onclick="guardarAjustes()">Guardar</button>
+  <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
+</div>
+
+<div id="scr-groups" class="screen">
+  <h2>Dificultad</h2>
+  <button class="menu-btn" style="background:#3b82f6" onclick="setGrupo('Fácil')">Fácil</button>
+  <button class="menu-btn" style="background:#10b981" onclick="setGrupo('Media')">Media</button>
+  <button class="menu-btn" style="background:#f59e0b" onclick="setGrupo('Difícil')">Difícil</button>
+  <button class="menu-btn" style="background:#ef4444" onclick="setGrupo('Muy Difícil')">Muy Difícil</button>
+</div>
+
+<div id="scr-levels" class="screen">
+  <h2 id="lvl-title"></h2>
+  <div id="levels-container" class="levels-grid"></div>
+</div>
+
+<div id="scr-quiz" class="screen">
+  <div style="display:flex;justify-content:space-between">
+    <span id="q-progress">1/7</span>
+    <span id="q-diff"></span>
+  </div>
+
+  <div class="bar"><div id="time-fill"></div></div>
+  <div class="bar"><div id="life-fill"></div></div>
+
+  <h3 id="q-text"></h3>
+  <div id="q-options"></div>
+
+  <div class="help-bar">
+    <button class="menu-btn btn-gray" onclick="usarPista()">💡 Pista</button>
+    <button class="menu-btn btn-gray" onclick="congelarTiempo()">⏸️ Congelar</button>
+    <button class="menu-btn btn-gray" onclick="vidaExtra()">❤️ Vida</button>
+  </div>
+
+  <button class="menu-btn btn-gray" onclick="resetearNivel();irA('scr-levels')">Salir</button>
+
+  <div id="modal-fail">
+    <h2>❌ Has perdido</h2>
+    <button class="menu-btn btn-ad" onclick="verAnuncioContinuar()">📺 Ver anuncio y continuar</button>
+    <button class="menu-btn btn-gray" onclick="resetearNivel();irA('scr-levels')">Salir</button>
+  </div>
+</div>
+
+<div id="modal-win">
+  <h2>🎉 Nivel Superado</h2>
+  <div id="win-stars"></div>
+  <p id="win-info"></p>
+  <p id="win-reward"></p>
+  <button class="menu-btn btn-play" onclick="resetearNivel();irA('scr-levels')">Continuar</button>
+</div>
+
+<div id="scr-shop" class="screen">
+  <h2>💳 Canjear PayPal</h2>
+  <div id="shop-list"></div>
+  <button class="menu-btn btn-gray" onclick="irA('scr-home')">Volver</button>
+</div>
 <script>
 /* =====================================================
-   CASHCENT PUZZLE — LÓGICA COMPLETA FINAL
+   CASHCENT PUZZLE — MOTOR COMPLETO PREMIUM
 ===================================================== */
 
 /* ---------- CONSTANTES ---------- */
@@ -382,15 +307,17 @@ const ANUNCIOS_DIARIOS_MAX = 3;
 /* ---------- ESTADO PERSISTENTE ---------- */
 let monedas = parseInt(localStorage.getItem("monedas")) || 0;
 let progreso = JSON.parse(localStorage.getItem("progreso")) || {
- "Fácil":1,"Media":1,"Difícil":1,"Muy Difícil":1
+  "Fácil":1,"Media":1,"Difícil":1,"Muy Difícil":1
 };
 let estrellas = JSON.parse(localStorage.getItem("estrellas")) || {
- "Fácil":{},"Media":{},"Difícil":{},"Muy Difícil":{}
+  "Fácil":{},"Media":{},"Difícil":{},"Muy Difícil":{}
 };
 let stats = JSON.parse(localStorage.getItem("stats")) || {
- preguntas:0,
- niveles:0,
- porDificultad:{"Fácil":0,"Media":0,"Difícil":0,"Muy Difícil":0}
+  preguntas:0,
+  niveles:0,
+  porDificultad:{
+    "Fácil":0,"Media":0,"Difícil":0,"Muy Difícil":0
+  }
 };
 let playerName = localStorage.getItem("playerName") || "";
 
@@ -398,11 +325,10 @@ let playerName = localStorage.getItem("playerName") || "";
 let hoy = new Date().toISOString().slice(0,10);
 let adsData = JSON.parse(localStorage.getItem("adsData")) || {fecha:hoy, vistos:0};
 if(adsData.fecha !== hoy){
- adsData = {fecha:hoy, vistos:0};
- localStorage.setItem("adsData",JSON.stringify(adsData));
+  adsData = {fecha:hoy, vistos:0};
 }
 
-/* ---------- ESTADO DE PARTIDA ---------- */
+/* ---------- PARTIDA ---------- */
 let bancoPreguntas = [];
 let preguntasFiltradas = [];
 let poolPreguntas = [];
@@ -412,282 +338,351 @@ let aciertos = 0;
 let vidas = VIDAS_MAX;
 let tiempo = TIEMPO_MAX;
 let timer = null;
+let reinicioTimer = null;
 let muted = false;
+let respuestaCorrectaActual = ""; // Variable para pista inteligente
 
 /* ---------- AUDIO ---------- */
+// SOLUCIÓN: Arrancar música al primer clic del usuario
+document.body.addEventListener("click", ()=>{
+  if(!muted) document.getElementById("bg-music").play().catch(()=>{});
+},{once:true});
+
 function playSound(id){
- if(muted) return;
- const s = document.getElementById(id);
- if(s){
-  s.currentTime = 0;
-  s.play().catch(()=>{});
- }
+  if(muted) return;
+  const s = document.getElementById(id);
+  if(s){
+    s.currentTime = 0;
+    s.play().catch(()=>{});
+  }
 }
+
 function toggleMute(){
- muted = !muted;
- document.querySelector(".snd-control").innerText = muted ? "🔇" : "🔊";
- if(!muted){
-  document.getElementById("bg-music").play().catch(()=>{});
- }
+  muted = !muted;
+  document.querySelector(".snd-control").innerText = muted ? "🔇" : "🔊";
+  const bg = document.getElementById("bg-music");
+  if(!muted) bg.play().catch(()=>{});
+  else bg.pause();
 }
 
 /* ---------- UTILIDADES ---------- */
 function guardarTodo(){
- localStorage.setItem("monedas",monedas);
- localStorage.setItem("progreso",JSON.stringify(progreso));
- localStorage.setItem("estrellas",JSON.stringify(estrellas));
- localStorage.setItem("stats",JSON.stringify(stats));
- localStorage.setItem("playerName",playerName);
- localStorage.setItem("adsData",JSON.stringify(adsData));
+  localStorage.setItem("monedas",monedas);
+  localStorage.setItem("progreso",JSON.stringify(progreso));
+  localStorage.setItem("estrellas",JSON.stringify(estrellas));
+  localStorage.setItem("stats",JSON.stringify(stats));
+  localStorage.setItem("playerName",playerName);
+  localStorage.setItem("adsData",JSON.stringify(adsData));
 }
+
 function actualizarMarcador(){
- document.getElementById("coin-count").innerText = monedas;
+  document.getElementById("coin-count").innerText = monedas;
 }
 
 /* ---------- LIMPIEZA ---------- */
 function limpiarTimers(){
- if(timer){
-  clearInterval(timer);
-  timer = null;
- }
+  if(timer){ clearInterval(timer); timer=null; }
+  if(reinicioTimer){ clearTimeout(reinicioTimer); reinicioTimer=null; }
 }
 
 /* ---------- NAVEGACIÓN ---------- */
 function irA(id){
- limpiarTimers();
- playSound("snd-click");
- document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
- document.getElementById(id).classList.add("active");
- if(id==="scr-settings") actualizarStatsUI();
- if(id==="scr-shop") pintarTienda();
+  limpiarTimers();
+  playSound("snd-click");
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if(id==="scr-settings") actualizarStatsUI();
+  if(id==="scr-shop") pintarTienda();
 }
 
-/* ---------- CARGA CSV ---------- */
+/* ---------- CSV ---------- */
 fetch("Ps1_comas_final.csv")
 .then(r=>r.text())
 .then(t=>{
- const filas = t.split("\n").slice(1);
- bancoPreguntas = filas.filter(l=>l.trim()).map(l=>{
-  const c = l.split(",");
-  return {p:c[0], cor:c[1], ops:[c[1],c[2],c[3],c[4]], diff:c[5].trim()};
- });
- document.getElementById("player-name-top").innerText = playerName || "CashCent Puzzle";
- actualizarMarcador();
- irA("scr-home");
+  const filas=t.split("\n").slice(1);
+  bancoPreguntas=filas.filter(l=>l.trim()).map(l=>{
+    const c=l.split(",");
+    return {p:c[0],cor:c[1],ops:[c[1],c[2],c[3],c[4]],diff:c[5].trim()};
+  });
+  document.getElementById("player-name-top").innerText = playerName || "CashCent Puzzle";
+  actualizarMarcador();
+  irA("scr-home");
 });
 
 /* ---------- DIFICULTADES ---------- */
 function setGrupo(g){
- grupoActivo = g;
- preguntasFiltradas = bancoPreguntas.filter(p=>p.diff===g);
- document.getElementById("lvl-title").innerText = "Niveles: "+g;
- pintarNiveles();
- irA("scr-levels");
+  grupoActivo=g;
+  preguntasFiltradas=bancoPreguntas.filter(p=>p.diff===g);
+  document.getElementById("lvl-title").innerText="Niveles: "+g;
+  pintarNiveles();
+  irA("scr-levels");
 }
 
 /* ---------- NIVELES ---------- */
 function pintarNiveles(){
- const c = document.getElementById("levels-container");
- c.innerHTML="";
- for(let i=1;i<=MAX_NIVELES;i++){
-  const b=document.createElement("button");
-  b.className="lvl-btn";
-  if(i<=progreso[grupoActivo]){
-   b.classList.add("unlocked");
-   b.innerText=i;
-   if(estrellas[grupoActivo][i]){
-    const s=document.createElement("div");
-    s.className="star-mini";
-    s.innerText="⭐".repeat(estrellas[grupoActivo][i]);
-    b.appendChild(s);
-   }
-   b.onclick=()=>iniciarNivel();
-  }else{
-   b.classList.add("locked");
-   b.innerText="🔒";
+  const c=document.getElementById("levels-container");
+  c.innerHTML="";
+  for(let i=1;i<=MAX_NIVELES;i++){
+    const b=document.createElement("button");
+    b.className="lvl-btn";
+    if(i<=progreso[grupoActivo]){
+      b.classList.add("unlocked");
+      b.innerText=i;
+      if(estrellas[grupoActivo][i]){
+        const s=document.createElement("div");
+        s.className="star-mini";
+        s.innerText="⭐".repeat(estrellas[grupoActivo][i]);
+        b.appendChild(s);
+      }
+      b.onclick=iniciarNivel;
+    }else{
+      b.classList.add("locked");
+      b.innerText="🔒";
+    }
+    c.appendChild(b);
   }
-  c.appendChild(b);
- }
 }
 
 /* ---------- NIVEL ---------- */
 function iniciarNivel(){
- qIdx=0;
- aciertos=0;
- vidas=VIDAS_MAX;
- tiempo=TIEMPO_MAX;
- poolPreguntas=[...preguntasFiltradas];
- irA("scr-quiz");
- iniciarTimer();
- cargarPregunta();
+  qIdx=0;aciertos=0;vidas=VIDAS_MAX;tiempo=TIEMPO_MAX;
+  poolPreguntas=[...preguntasFiltradas];
+  irA("scr-quiz");
+  iniciarTimer();
+  cargarPregunta();
 }
 
 /* ---------- TIMER ---------- */
 function iniciarTimer(){
- limpiarTimers();
- actualizarBarras();
- timer=setInterval(()=>{
-  tiempo--;
+  limpiarTimers();
   actualizarBarras();
-  if(tiempo<=0) perderVida();
- },100);
+  timer=setInterval(()=>{
+    tiempo--;
+    actualizarBarras();
+    if(tiempo<=0) perderVida();
+  },100);
 }
+
 function actualizarBarras(){
- document.getElementById("time-fill").style.width=(tiempo/TIEMPO_MAX*100)+"%";
- document.getElementById("life-fill").style.width=(vidas/VIDAS_MAX*100)+"%";
+  document.getElementById("time-fill").style.width=(tiempo/TIEMPO_MAX*100)+"%";
+  document.getElementById("life-fill").style.width=(vidas/VIDAS_MAX*100)+"%";
 }
 
 /* ---------- PREGUNTAS ---------- */
 function cargarPregunta(){
- document.getElementById("modal-fail").style.display="none";
- if(poolPreguntas.length===0) poolPreguntas=[...preguntasFiltradas];
+  document.getElementById("modal-fail").style.display="none";
+  if(poolPreguntas.length===0) poolPreguntas=[...preguntasFiltradas];
+  const q=poolPreguntas.splice(Math.floor(Math.random()*poolPreguntas.length),1)[0];
 
- const q=poolPreguntas.splice(Math.floor(Math.random()*poolPreguntas.length),1)[0];
+  respuestaCorrectaActual = q.cor; // Guardamos para la pista inteligente
 
- document.getElementById("q-progress").innerText=(qIdx+1)+"/"+PREGUNTAS_POR_NIVEL;
- document.getElementById("q-diff").innerText=grupoActivo;
- document.getElementById("q-text").innerText=q.p;
+  document.getElementById("q-progress").innerText=(qIdx+1)+"/"+PREGUNTAS_POR_NIVEL;
+  document.getElementById("q-diff").innerText=grupoActivo;
+  document.getElementById("q-text").innerText=q.p;
 
- const box=document.getElementById("q-options");
- box.innerHTML="";
- q.ops.sort(()=>Math.random()-.5).forEach(o=>{
-  const b=document.createElement("button");
-  b.className="opt-btn";
-  b.innerText=o;
-  b.dataset.correcta=o===q.cor;
-  b.onclick=()=>{
-   document.querySelectorAll(".opt-btn").forEach(x=>x.disabled=true);
-   stats.preguntas++;
-   if(o===q.cor){
-    playSound("snd-correct");
-    b.classList.add("correct");
-    aciertos++;
-    setTimeout(avanzarPregunta,800);
-   }else{
-    playSound("snd-wrong");
-    b.classList.add("wrong");
-    document.body.classList.add("flash-error");
-    setTimeout(()=>document.body.classList.remove("flash-error"),150);
-    setTimeout(perderVida,800);
-   }
-  };
-  box.appendChild(b);
- });
+  const box=document.getElementById("q-options");
+  box.innerHTML="";
+  q.ops.sort(()=>Math.random()-.5).forEach(o=>{
+    const b=document.createElement("button");
+    b.className="opt-btn";
+    b.innerText=o;
+    b.onclick=()=>{
+      document.querySelectorAll(".opt-btn").forEach(x=>x.disabled=true);
+      stats.preguntas++;
+      if(o===q.cor){
+        playSound("snd-correct");
+        b.classList.add("correct");
+        aciertos++;
+        setTimeout(avanzarPregunta,800);
+      }else{
+        playSound("snd-wrong");
+        b.classList.add("wrong");
+        setTimeout(perderVida,800);
+      }
+    };
+    box.appendChild(b);
+  });
 }
 
 /* ---------- AVANCE ---------- */
 function avanzarPregunta(){
- qIdx++;
- if(qIdx%5===0) verAnuncioObligatorio();
- if(qIdx<PREGUNTAS_POR_NIVEL) cargarPregunta();
- else finalizarNivel();
+  qIdx++;
+  if(qIdx<PREGUNTAS_POR_NIVEL) cargarPregunta();
+  else finalizarNivel();
 }
 
 /* ---------- VIDAS ---------- */
 function perderVida(){
- vidas--;
- actualizarBarras();
- if(vidas<=0){
-  document.getElementById("modal-fail").style.display="flex";
- }else{
-  tiempo=TIEMPO_MAX;
-  setTimeout(cargarPregunta,800);
- }
+  vidas--;
+  actualizarBarras();
+  if(vidas<=0){
+    document.getElementById("modal-fail").style.display="flex";
+  }else{
+    tiempo=TIEMPO_MAX;
+    setTimeout(cargarPregunta,800);
+  }
 }
-
 /* ---------- FINAL ---------- */
 function finalizarNivel(){
- limpiarTimers();
- let estrellasGanadas=vidas>=3?3:vidas>=2?2:1;
+  limpiarTimers();
 
- const nivelActual=progreso[grupoActivo];
- estrellas[grupoActivo][nivelActual]=Math.max(estrellas[grupoActivo][nivelActual]||0,estrellasGanadas);
+  let estrellasGanadas = vidas>=3 ? 3 : vidas>=2 ? 2 : 1;
+  const nivelActual = progreso[grupoActivo];
 
- monedas+=70;
- stats.niveles++;
- stats.porDificultad[grupoActivo]++;
+  estrellas[grupoActivo][nivelActual] =
+    Math.max(estrellas[grupoActivo][nivelActual] || 0, estrellasGanadas);
 
- if(progreso[grupoActivo]<MAX_NIVELES) progreso[grupoActivo]++;
+  monedas += 70;
+  stats.niveles++;
+  stats.porDificultad[grupoActivo]++;
 
- guardarTodo();
- actualizarMarcador();
+  if(progreso[grupoActivo] < MAX_NIVELES) progreso[grupoActivo]++;
 
- document.getElementById("win-stars").innerText="⭐".repeat(estrellasGanadas);
- document.getElementById("win-info").innerText="Aciertos: "+aciertos+"/"+PREGUNTAS_POR_NIVEL;
- document.getElementById("win-reward").innerText="+70 monedas";
- document.getElementById("modal-win").style.display="flex";
+  guardarTodo();
+  actualizarMarcador();
+
+  document.getElementById("win-stars").innerText = "⭐".repeat(estrellasGanadas);
+  document.getElementById("win-info").innerText =
+    "Aciertos: "+aciertos+"/"+PREGUNTAS_POR_NIVEL;
+  document.getElementById("win-reward").innerText = "+70 monedas";
+  document.getElementById("modal-win").style.display = "flex";
 }
 
 /* ---------- RESET ---------- */
 function resetearNivel(){
- limpiarTimers();
- document.getElementById("modal-fail").style.display="none";
- document.getElementById("modal-win").style.display="none";
+  limpiarTimers();
+  document.getElementById("modal-fail").style.display="none";
+  document.getElementById("modal-win").style.display="none";
 }
 
 /* ---------- ANUNCIOS ---------- */
 function verAnuncioGeneral(){
- if(adsData.vistos>=ANUNCIOS_DIARIOS_MAX){alert("Límite diario alcanzado");return;}
- adsData.vistos++; monedas+=50;
- guardarTodo(); actualizarMarcador();
- alert("Anuncio visto (+50)");
+  if(adsData.vistos>=ANUNCIOS_DIARIOS_MAX){
+    alert("Límite diario alcanzado");
+    return;
+  }
+  adsData.vistos++;
+  monedas+=50;
+  guardarTodo();
+  actualizarMarcador();
+  alert("Anuncio visto (+50 monedas)");
 }
+
 function verAnuncioContinuar(){
- if(adsData.vistos>=ANUNCIOS_DIARIOS_MAX){alert("Límite diario alcanzado");return;}
- adsData.vistos++; vidas=1; tiempo=TIEMPO_MAX;
- guardarTodo();
- document.getElementById("modal-fail").style.display="none";
- iniciarTimer(); cargarPregunta();
+  if(adsData.vistos>=ANUNCIOS_DIARIOS_MAX){
+    alert("Límite diario alcanzado");
+    return;
+  }
+  adsData.vistos++;
+  vidas=1;
+  tiempo=TIEMPO_MAX;
+  guardarTodo();
+  document.getElementById("modal-fail").style.display="none";
+  iniciarTimer();
+  cargarPregunta();
 }
-function verAnuncioObligatorio(){
- alert("Anuncio obligatorio");
+
+/* ---------- AYUDAS PREMIUM ---------- */
+// PISTA MEJORADA: Ahora elimina una respuesta que realmente es incorrecta
+function usarPista(){
+  if(monedas<30){ alert("Necesitas 30 monedas"); return; }
+  
+  const botones=[...document.querySelectorAll(".opt-btn")];
+  const incorrectos=botones.filter(b=> b.innerText !== respuestaCorrectaActual && !b.disabled);
+  
+  if(incorrectos.length>0){
+    monedas-=30; 
+    guardarTodo(); 
+    actualizarMarcador();
+    incorrectos[Math.floor(Math.random()*incorrectos.length)].disabled=true;
+  } else {
+    alert("No hay más pistas disponibles para esta pregunta");
+  }
+}
+
+function congelarTiempo(){
+  if(monedas<40){ alert("Necesitas 40 monedas"); return; }
+  monedas-=40; guardarTodo(); actualizarMarcador();
+  limpiarTimers();
+  reinicioTimer=setTimeout(iniciarTimer,5000);
+}
+
+function vidaExtra(){
+  if(monedas<50){ alert("Necesitas 50 monedas"); return; }
+  if(vidas >= VIDAS_MAX){ alert("Ya tienes el máximo de vidas"); return; }
+  monedas-=50; vidas++;
+  guardarTodo(); actualizarMarcador(); actualizarBarras();
 }
 
 /* ---------- AJUSTES ---------- */
 function guardarAjustes(){
- playerName=document.getElementById("player-name-input").value.trim();
- document.getElementById("player-name-top").innerText=playerName||"CashCent Puzzle";
- guardarTodo();
- irA("scr-home");
+  playerName=document.getElementById("player-name-input").value.trim();
+  document.getElementById("player-name-top").innerText =
+    playerName || "CashCent Puzzle";
+  guardarTodo();
+  irA("scr-home");
 }
+
 function actualizarStatsUI(){
- document.getElementById("stats-box").innerText=
-  "Preguntas: "+stats.preguntas+"\n"+
-  "Niveles: "+stats.niveles+"\n"+
-  "Fácil: "+stats.porDificultad["Fácil"]+"\n"+
-  "Media: "+stats.porDificultad["Media"]+"\n"+
-  "Difícil: "+stats.porDificultad["Difícil"]+"\n"+
-  "Muy Difícil: "+stats.porDificultad["Muy Difícil"];
- document.getElementById("player-name-input").value=playerName;
+  document.getElementById("stats-box").innerText =
+    "Preguntas: "+stats.preguntas+"\n"+
+    "Niveles: "+stats.niveles+"\n"+
+    "Fácil: "+stats.porDificultad["Fácil"]+"\n"+
+    "Media: "+stats.porDificultad["Media"]+"\n"+
+    "Difícil: "+stats.porDificultad["Difícil"]+"\n"+
+    "Muy Difícil: "+stats.porDificultad["Muy Difícil"];
 }
 
 /* ---------- SOPORTE ---------- */
 function enviarSoporte(){
- const a=document.getElementById("support-subject").value;
- const m=document.getElementById("support-message").value;
- window.location.href=
-  "mailto:heidimba5@gmail.com?subject="+encodeURIComponent(a)+
-  "&body="+encodeURIComponent(m);
+  const a=document.getElementById("support-subject").value;
+  const m=document.getElementById("support-message").value;
+  window.location.href=
+    "mailto:heidimba5@gmail.com?subject="+encodeURIComponent(a)+
+    "&body="+encodeURIComponent(m);
 }
 
-/* ---------- PAYPAL ---------- */
+/* ---------- PAYPAL PREMIUM ---------- */
 function pintarTienda(){
- const l=document.getElementById("shop-list");
- l.innerHTML="";
- const pagos=[0.05,0.1,0.5,1,5,10,15,20];
- pagos.forEach(e=>{
-  const c=Math.floor(e*700);
-  l.innerHTML+=`<div>${e}€ <button onclick="retirar(${e},${c})">${c} 💰</button></div>`;
- });
-}
-function retirar(e,c){
- if(monedas<c){alert("Monedas insuficientes");return;}
- monedas-=c;
- guardarTodo(); actualizarMarcador();
- window.location.href=
-  "mailto:heidimba5@gmail.com?subject=Retiro PayPal&body=Importe: "+e+"€";
+  const l=document.getElementById("shop-list");
+  l.innerHTML="";
+  const pagos=[
+    {e:"0.05",c:7000},{e:"0.10",c:10000},{e:"0.50",c:14000},
+    {e:"1",c:18500},{e:"5",c:23000},{e:"10",c:30000},
+    {e:"15",c:35500},{e:"20",c:41000}
+  ];
+  pagos.forEach(p=>{
+    const ok=monedas>=p.c;
+    l.innerHTML+=`
+    <div style="display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #eee">
+      <span>PayPal <b>${p.e}€</b></span>
+      <button class="btn-pay"
+        style="background:${ok?'#6366f1':'#9ca3af'}"
+        onclick="${ok?`confirmarRetiro('${p.e}',${p.c})`:`alert('Te faltan ${p.c-monedas} monedas')`}">
+        ${p.c} 💰
+      </button>
+    </div>`;
+  });
 }
 
-/* ---------- BACK BUTTON ---------- */
+function confirmarRetiro(e,c){
+  if(!confirm("¿Confirmas retirar "+e+"€ por "+c+" monedas?")) return;
+  retirar(e,c);
+}
+
+function retirar(e,c){
+  if(monedas<c) return;
+  monedas-=c;
+  guardarTodo();
+  actualizarMarcador();
+  window.location.href=
+    "mailto:heidimba5@gmail.com?subject=Retiro PayPal&body=Importe: "+e+"€";
+}
+
+/* ---------- BACK ---------- */
 window.onpopstate=()=>irA("scr-home");
- </script>
+</script>
+
+</body>
+  </html>
+  
